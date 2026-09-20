@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Enerlyze — Energy in a different light.",
-  description: "Equipment-level energy analytics, carbon and ESG reporting, and accessible home energy insights from Enerlyze.",
+  title: "Enerlyze — A greener way forward.",
+  description: "Save energy, explore greener products and reduce your footprint. Accessible energy analytics, renewable solutions, and carbon and ESG reporting from Enerlyze.",
   other: {
     "codex-preview": "development",
   },

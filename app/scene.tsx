@@ -1,44 +1,242 @@
 "use client";
-import {useEffect,useRef,useState, type MutableRefObject} from 'react';
+import {useEffect, useRef, useState, type MutableRefObject} from 'react';
 import type {Mode} from './page';
 import type * as Three from 'three';
-type Part={object:Three.Object3D;from:Three.Vector3;to:Three.Vector3};
-export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mode;progress:MutableRefObject<number>;motion:boolean;burst?:boolean}){const host=useRef<HTMLDivElement>(null);const [error,setError]=useState(false);const burstRef=useRef(burst);useEffect(()=>{burstRef.current=burst},[burst]);const motionRef=useRef(motion);useEffect(()=>{motionRef.current=motion},[motion]);useEffect(()=>{let disposed=false;let cleanup=()=>{};setError(false);Promise.all([import('three'),import('three/addons/geometries/RoundedBoxGeometry.js'),import('three/addons/environments/RoomEnvironment.js')]).then(([T,{RoundedBoxGeometry},{RoomEnvironment}])=>{if(disposed||!host.current)return;const el=host.current;let renderer:Three.WebGLRenderer;try{renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'})}catch{setError(true);return}renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setClearColor(0x0a0a0b,0);renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;el.appendChild(renderer.domElement);const scene=new T.Scene();const camera=new T.PerspectiveCamera(33,1,.05,100);const pmrem=new T.PMREMGenerator(renderer);const env=new RoomEnvironment();const envTex=pmrem.fromScene(env,.04);scene.environment=envTex.texture;env.dispose();pmrem.dispose();scene.add(new T.HemisphereLight(0xdce5ff,0x34323b,2));const key=new T.DirectionalLight(0xffffff,4);key.position.set(3,5,6);scene.add(key);const blue=new T.PointLight(0xaac9ff,25,20);blue.position.set(-4,0,4);scene.add(blue);const warm=new T.PointLight(0xffbaa0,25,20);warm.position.set(5,-2,-2);scene.add(warm);
-const assembly=new T.Group();scene.add(assembly);const parts:Part[]=[];const gears:Three.Group[]=[];const drums:Three.Group[]=[];const textures:Three.Texture[]=[];const steel=new T.MeshStandardMaterial({color:0xbac0c9,metalness:.96,roughness:.22});const white=new T.MeshStandardMaterial({color:0xd4d4ce,metalness:.16,roughness:.32});const black=new T.MeshStandardMaterial({color:0x17181b,metalness:.35,roughness:.32});const grey=new T.MeshStandardMaterial({color:0x333840,metalness:.85,roughness:.25});const copper=new T.MeshStandardMaterial({color:0xbb6a35,metalness:.87,roughness:.25});const brass=new T.MeshStandardMaterial({color:0xc3a16b,metalness:.9,roughness:.25});const green=new T.MeshStandardMaterial({color:0x164847,metalness:.3,roughness:.48});const accent=new T.MeshStandardMaterial({color:0xc9d8fa,emissive:0x648fff,emissiveIntensity:.7,metalness:.2,roughness:.3});const glass=new T.MeshPhysicalMaterial({color:0xcad8e5,metalness:0,roughness:.08,transmission:.92,thickness:.08,transparent:true,opacity:.36,ior:1.45,depthWrite:false});
-function rounded(parent:Three.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,mat:Three.Material,r=.07){const m=new T.Mesh(new RoundedBoxGeometry(w,h,d,3,r),mat);m.position.set(x,y,z);parent.add(m);return m}
-function cylinder(parent:Three.Object3D,r:number,h:number,x:number,y:number,z:number,mat:Three.Material,axis='z',r2=r){const m=new T.Mesh(new T.CylinderGeometry(r,r2,h,64),mat);if(axis==='z')m.rotation.x=Math.PI/2;if(axis==='x')m.rotation.z=Math.PI/2;m.position.set(x,y,z);parent.add(m);return m}
-function ring(parent:Three.Object3D,r:number,t:number,x:number,y:number,z:number,mat:Three.Material){const m=new T.Mesh(new T.TorusGeometry(r,t,12,72),mat);m.position.set(x,y,z);parent.add(m);return m}
-function screw(parent:Three.Object3D,x:number,y:number,z:number){cylinder(parent,.042,.06,x,y,z,steel);rounded(parent,.05,.009,.004,x,y,z+.032,black,.002)}
-function label(parent:Three.Object3D,text:string,w:number,h:number,x:number,y:number,z:number,fg='#c9ced6',bg:string|null=null,font=48){const cv=document.createElement('canvas');cv.width=1024;cv.height=Math.max(64,Math.round(1024*h/w));const c=cv.getContext('2d')!;if(bg){c.fillStyle=bg;c.fillRect(0,0,cv.width,cv.height)}c.fillStyle=fg;c.font=`${font}px Arial`;c.textAlign='center';c.textBaseline='middle';c.fillText(text,cv.width/2,cv.height/2);const tx=new T.CanvasTexture(cv);tx.colorSpace=T.SRGBColorSpace;textures.push(tx);const mesh=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:tx,transparent:true,depthWrite:false}));mesh.position.set(x,y,z);parent.add(mesh);return mesh}
-function part(x:number,y:number,z:number,dx:number,dy:number,dz:number){const g=new T.Group();g.position.set(x,y,z);assembly.add(g);parts.push({object:g,from:g.position.clone(),to:new T.Vector3(x+dx,y+dy,z+dz)});return g}
-function gear(parent:Three.Object3D,x:number,y:number,z:number,r:number,teeth:number,mat:Three.Material){const g=new T.Group();g.position.set(x,y,z);parent.add(g);cylinder(g,r*.87,.08,0,0,0,mat);ring(g,r*.49,.035,0,0,.052,steel);cylinder(g,r*.2,.16,0,0,.04,steel);for(let i=0;i<teeth;i++){const a=i/teeth*Math.PI*2;const tooth=rounded(g,r*.17,r*.23,.1,Math.cos(a)*r*.9,Math.sin(a)*r*.9,0,mat,.008);tooth.rotation.z=a-Math.PI/2}for(let i=0;i<5;i++){const a=i/5*Math.PI*2;cylinder(g,r*.09,.009,Math.cos(a)*r*.62,Math.sin(a)*r*.62,.047,black)}gears.push(g);return g}
-function trace(parent:Three.Object3D,coords:number[][],mat:Three.Material,r=.007){const curve=new T.CatmullRomCurve3(coords.map(a=>new T.Vector3(a[0],a[1],a[2])),false,'catmullrom',.05);const mesh=new T.Mesh(new T.TubeGeometry(curve,32,r,6,false),mat);parent.add(mesh);return mesh}
-if(mode==='home'){
-const back=part(0,0,-.3,-.12,0,-.8);rounded(back,2.15,2.85,.3,0,0,0,black,.18);rounded(back,1.96,2.64,.1,0,0,.19,grey,.12);for(const x of [-.87,.87])for(const y of [-1.13,1.13])screw(back,x,y,.26);
-const board=part(0,-.05,.03,.25,-.06,-.22);rounded(board,1.74,2.12,.06,0,0,0,green,.04);for(let i=0;i<19;i++){const x=-.75+(i%7)*.24;const y=-.9+Math.floor(i/7)*.5;trace(board,[[x,y,.041],[x+.09,y,.041],[x+.09,y+.19,.041],[x+.2,y+.19,.041]],brass,.006)}rounded(board,.48,.36,.1,.14,-.22,.07,black,.015);for(let i=0;i<8;i++){rounded(board,.022,.09,.023,-.06+i*.055,-.43,.065,steel,.001);rounded(board,.022,.09,.023,-.06+i*.055,.0,.065,steel,.001)}for(let i=0;i<7;i++){cylinder(board,.055,.14,-.65+(i%4)*.18,-.3-Math.floor(i/4)*.36,.09,black);cylinder(board,.053,.012,-.65+(i%4)*.18,-.3-Math.floor(i/4)*.36,.17,steel)}for(let i=0;i<12;i++){rounded(board,.06,.025,.02,.42+(i%3)*.11,-.62+Math.floor(i/3)*.14,.05,black,.004)}label(board,'ENERLYZE / MEASUREMENT BOARD',1.4,.08,0,-.94,.05,'#b6c7b1',null,33);
-const coils=part(-.3,-.57,.3,-.75,-.26,.35);rounded(coils,.48,.51,.35,0,0,0,grey,.04);for(let i=0;i<20;i++)ring(coils,.2,.013,0,0,-.17+i*.018,copper);trace(coils,[[0,-.2,.2],[.3,-.25,.2],[.5,-.1,.1]],copper,.018);
-const mechanics=part(0,.22,.32,-.26,.05,.65);rounded(mechanics,1.52,.84,.075,0,0,-.05,steel,.04);gear(mechanics,-.5,-.28,.05,.27,20,brass);gear(mechanics,-.08,-.1,.08,.19,15,steel);gear(mechanics,.3,-.28,.06,.24,18,brass);gear(mechanics,.59,.03,.1,.13,12,steel);cylinder(mechanics,.015,1.32,0,.13,.19,steel,'x');
-const counter=part(0,.73,.5,.1,.52,1.18);rounded(counter,1.73,.66,.19,0,0,-.1,black,.04);for(let i=0;i<5;i++){const g=new T.Group();g.position.x=-.6+i*.3;counter.add(g);cylinder(g,.22,.27,0,0,0,black,'x');for(let n=0;n<10;n++){const a=n/10*Math.PI*2;const cv=document.createElement('canvas');cv.width=128;cv.height=128;const c=cv.getContext('2d')!;c.fillStyle=i===4?'#671c24':'#111114';c.fillRect(0,0,128,128);c.fillStyle='#f4f4ee';c.font='bold 104px monospace';c.textAlign='center';c.textBaseline='middle';c.fillText(String(n),64,70);const tx=new T.CanvasTexture(cv);tx.colorSpace=T.SRGBColorSpace;textures.push(tx);const digit=new T.Mesh(new T.PlaneGeometry(.265,.136),new T.MeshStandardMaterial({map:tx,roughness:.4}));digit.position.set(0,Math.sin(a)*.223,Math.cos(a)*.223);digit.rotation.x=-a;g.add(digit)}drums.push(g)}rounded(counter,1.72,.16,.12,0,.3,.13,grey,.015);rounded(counter,1.72,.16,.12,0,-.3,.13,grey,.015);label(counter,'kWh',.28,.12,.68,-.43,.21,'#d8dbe1',null,130);
-const face=part(0,0,.64,-.55,.05,1.95);rounded(face,2.1,.43,.16,0,1.2,0,white,.09);rounded(face,2.1,.82,.16,0,-.98,0,white,.09);rounded(face,.2,2.2,.16,-.95,.08,0,white,.05);rounded(face,.2,2.2,.16,.95,.08,0,white,.05);rounded(face,1.72,.47,.08,0,.12,-.03,white,.025);label(face,'enerlyze',1.14,.25,0,1.19,.09,'#20252b',null,160);label(face,'SINGLE PHASE  /  ENERGY METER',1.66,.14,0,-.78,.09,'#343c45',null,52);label(face,'230 V     50 Hz     10–60 A     CLASS 1.0',1.63,.13,0,-.98,.09,'#51575d',null,46);label(face,'E N E R G Y ,  U N D E R S T O O D',1.65,.1,0,-1.2,.09,'#525b64',null,35);for(const x of [-.93,.93])screw(face,x,-.57,.1);
-const cover=part(0,.2,.78,.48,.2,2.65);rounded(cover,1.79,1.82,.06,0,0,0,glass,.12);const edges=new T.LineSegments(new T.EdgesGeometry(new RoundedBoxGeometry(1.79,1.82,.075,3,.12),25),new T.LineBasicMaterial({color:0xa7c1d9,transparent:true,opacity:.24}));cover.add(edges);
-const terminals=part(0,-1.5,.1,.1,-.5,.25);rounded(terminals,1.6,.36,.56,0,0,0,black,.06);for(let i=0;i<4;i++){rounded(terminals,.22,.18,.32,-.54+i*.36,.03,.07,brass,.025);screw(terminals,-.54+i*.36,.03,.25)}
-assembly.rotation.set(-.08,-.24,.02);
-}else if(mode==='business'){
-const shell=part(-.5,0,0,-1.6,0,0);cylinder(shell,.86,1.72,0,0,0,grey,'x');for(let i=0;i<36;i++){const a=i/36*Math.PI*2;const fin=rounded(shell,1.55,.12,.045,0,Math.sin(a)*.89,Math.cos(a)*.89,steel,.008);fin.rotation.x=-a}cylinder(shell,.93,.15,-.94,0,0,black,'x');for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const line=ring(shell,.1,.012,-1.022,Math.sin(a)*.63,Math.cos(a)*.63,steel);line.rotation.y=Math.PI/2}rounded(shell,.74,.28,.7,-.2,1.0,0,black,.035);rounded(shell,.82,.055,.78,-.2,1.17,0,steel,.025);label(shell,'ENERLYZE / INDUSTRIAL DRIVE',1.25,.16,0,.1,.935,'#d1d5dc','#252b33',47);for(const x of [-.58,.58])for(const z of [-.6,.6]){rounded(shell,.38,.28,.26,x,-.85,z,grey,.03);rounded(shell,.52,.07,.38,x,-1.02,z,steel,.02)}
-const stator=part(-.35,0,0,-.45,.35,.8);cylinder(stator,.69,1.2,0,0,0,black,'x');for(let i=0;i<24;i++){const a=i/24*Math.PI*2;const g=new T.Group();g.rotation.x=a;stator.add(g);for(let j=0;j<7;j++){const coil=new T.Mesh(new T.TorusGeometry(.15+j*.008,.011,6,30),copper);coil.rotation.y=Math.PI/2;coil.scale.y=2.7;coil.position.set(0,.46,0);g.add(coil)}}
-const rotor=part(.2,0,0,.6,0,0);cylinder(rotor,.4,1.75,0,0,0,steel,'x');cylinder(rotor,.13,3,0,0,0,steel,'x');for(let i=0;i<26;i++){const a=i/26*Math.PI*2;const bar=rounded(rotor,1.65,.022,.045,0,Math.sin(a)*.405,Math.cos(a)*.405,copper,.005);bar.rotation.x=-a}cylinder(rotor,.48,.11,-.83,0,0,brass,'x');cylinder(rotor,.48,.11,.83,0,0,brass,'x');
-const flange=part(.62,0,0,.7,0,.1);cylinder(flange,.9,.18,0,0,0,steel,'x');cylinder(flange,.28,.23,.15,0,0,black,'x');for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const bolt=cylinder(flange,.065,.14,.14,Math.sin(a)*.74,Math.cos(a)*.74,black,'x');}
-const transmission=part(1.35,0,0,1.45,.1,.2);rounded(transmission,1.18,1.7,1.65,0,0,0,grey,.13);rounded(transmission,.1,1.53,1.48,-.64,0,0,steel,.055);const g1=gear(transmission,.05,.33,.88,.46,26,brass);const g2=gear(transmission,.05,-.39,.9,.26,17,steel);cylinder(transmission,.16,.5,.05,.33,1.01,steel);for(const x of [-.48,.48])for(const y of [-.63,.63])screw(transmission,x,y,.85);rounded(transmission,1.42,.14,1.85,0,-.99,0,black,.035);
-const lid=part(1.35,0,.88,.9,.35,1.45);rounded(lid,1.14,1.67,.11,0,0,0,steel,.1);ring(lid,.43,.018,0,.29,.07,black);cylinder(lid,.19,.34,0,.29,.16,steel);label(lid,'E / 03',.55,.19,0,-.46,.062,'#262930',null,120);assembly.rotation.set(.05,-.48,.02);
+
+const letters: Record<string,string[]> = {
+ E:['11111','10000','10000','11110','10000','10000','11111'],
+ N:['10001','11001','11001','10101','10011','10011','10001'],
+ R:['11110','10001','10001','11110','10100','10010','10001'],
+ L:['10000','10000','10000','10000','10000','10000','11111'],
+ Y:['10001','10001','01010','00100','00100','00100','00100'],
+ Z:['11111','00001','00010','00100','01000','10000','11111'],
+};
+export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mode;progress:MutableRefObject<number>;motion:boolean;burst?:boolean}) {
+ const host=useRef<HTMLDivElement>(null);
+ const [error,setError]=useState(false);
+ const motionRef=useRef(motion), burstRef=useRef(burst);
+ useEffect(()=>{motionRef.current=motion},[motion]);
+ useEffect(()=>{burstRef.current=burst},[burst]);
+ useEffect(()=>{
+  let disposed=false;
+  let cleanup=()=>{};
+  setError(false);
+  Promise.all([import('three'),import('three/addons/geometries/RoundedBoxGeometry.js'),import('three/addons/environments/RoomEnvironment.js')]).then(([T,{RoundedBoxGeometry},{RoomEnvironment}])=>{
+   if(disposed||!host.current)return;
+   const el=host.current;
+   let renderer:Three.WebGLRenderer;
+   try { renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'}); } catch {setError(true);return}
+   renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+   renderer.setClearColor(0x090c0b,0);
+   renderer.toneMapping=T.ACESFilmicToneMapping;
+   renderer.toneMappingExposure=1.25;
+   el.appendChild(renderer.domElement);
+   const scene=new T.Scene();
+   const camera=new T.PerspectiveCamera(38,1,.1,60);
+   const generator=new T.PMREMGenerator(renderer);
+   const environment=new RoomEnvironment();
+   const env=generator.fromScene(environment,.05);
+   scene.environment=env.texture;
+   environment.dispose();generator.dispose();
+   scene.add(new T.HemisphereLight(0xe8ffee,0x13231b,2.4));
+   const light=new T.DirectionalLight(0xf4fff7,4);light.position.set(4,6,5);scene.add(light);
+   const accentLight=new T.PointLight(0xa5ff38,24,16);accentLight.position.set(-3,2,3);scene.add(accentLight);
+   const steel=new T.MeshStandardMaterial({color:0xc7d0cc,metalness:.9,roughness:.24});
+   const dark=new T.MeshStandardMaterial({color:0x222c28,metalness:.72,roughness:.3});
+   const cellMaterial=new T.MeshStandardMaterial({color:0x153146,metalness:.62,roughness:.17});
+   const green=new T.MeshStandardMaterial({color:0x9cff3b,metalness:.15,roughness:.36});
+   const leafMaterial=new T.MeshStandardMaterial({color:0x61ba36,metalness:.08,roughness:.4,side:T.DoubleSide});
+   const glow=new T.MeshBasicMaterial({color:0xa5ff38});
+   const textures:Three.Texture[]=[];
+   const root=new T.Group();scene.add(root);
+   const disc=document.createElement('canvas');disc.width=64;disc.height=64;
+   const context=disc.getContext('2d')!;
+   context.fillStyle='#fff';context.beginPath();context.arc(32,32,27,0,Math.PI*2);context.fill();
+   const dotTexture=new T.CanvasTexture(disc);textures.push(dotTexture);
+   function pointSphere(count:number,radius:number,color:number,size:number) {
+    const coordinates=new Float32Array(count*3);
+    const phi=Math.PI*(3-Math.sqrt(5));
+    for(let i=0;i<count;i++){
+     const y=1-(i+.5)/count*2, r=Math.sqrt(1-y*y), a=i*phi;
+     coordinates.set([Math.cos(a)*r*radius,y*radius,Math.sin(a)*r*radius],i*3);
+    }
+    const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(coordinates,3));
+    const material=new T.PointsMaterial({color,size,map:dotTexture,alphaTest:.35,transparent:true,opacity:.93,sizeAttenuation:true});
+    return new T.Points(geometry,material);
+   }
+   function box(parent:Three.Object3D,w:number,h:number,d:number,x:number,y:number,z:number,material:Three.Material,r=.035){
+    const m=new T.Mesh(new RoundedBoxGeometry(w,h,d,2,r),material);m.position.set(x,y,z);parent.add(m);return m;
+   }
+   function cylinder(parent:Three.Object3D,r:number,h:number,x:number,y:number,z:number,material:Three.Material,axis='y'){
+    const m=new T.Mesh(new T.CylinderGeometry(r,r,h,40),material);
+    if(axis==='x')m.rotation.z=Math.PI/2;
+    if(axis==='z')m.rotation.x=Math.PI/2;
+    m.position.set(x,y,z);parent.add(m);return m;
+   }
+   function tube(parent:Three.Object3D,points:Three.Vector3[],radius:number,material:Three.Material){
+    const curve=new T.CatmullRomCurve3(points);
+    const m=new T.Mesh(new T.TubeGeometry(curve,28,radius,6,false),material);parent.add(m);return m;
+   }
+   const sphere=pointSphere(850,1.45,0xeaffdc,.075);
+   const base=(sphere.geometry.attributes.position.array as Float32Array).slice();
+   const word:number[][]=[];
+   'ENERLYZE'.split('').forEach((char,ci)=>letters[char].forEach((row,yi)=>row.split('').forEach((on,xi)=>{
+    if(on==='1')word.push([(ci*6+xi-23.5)*.125,(3-yi)*.125,0]);
+   })));
+   sphere.visible=mode==='choose';scene.add(sphere);
+   const targets=new Float32Array(base.length);
+   for(let i=0;i<base.length/3;i++)targets.set(word[i%word.length],i*3);
+   const globe=pointSphere(650,.86,0xa5ff38,.038);
+   globe.visible=mode!=='choose';root.add(globe);
+   const inner=new T.Mesh(new T.SphereGeometry(.8,40,32),new T.MeshStandardMaterial({color:0x142c21,metalness:.65,roughness:.32}));
+   if(mode==='home')root.add(inner);
+   const orbitMaterial=new T.MeshBasicMaterial({color:0x66885d,transparent:true,opacity:.32});
+   if(mode!=='choose'){
+    for(let i=0;i<2;i++){
+     const orbit=new T.Mesh(new T.TorusGeometry(2.0+i*.12,.009,5,140),orbitMaterial);
+     orbit.rotation.set(.3+i*.65,.25+i*.4,.1);root.add(orbit);
+    }
+   }
+   // Renewable generation: a framed array, individual cells, and supporting legs.
+   const solar=new T.Group();solar.position.set(1.73,.45,.15);
+   if(mode!=='choose')root.add(solar);
+   box(solar,1.25,.93,.06,0,0,0,steel);
+   for(let x=0;x<4;x++)for(let y=0;y<3;y++){
+    box(solar,.278,.254,.026,-.447+x*.299,-.282+y*.282,.048,cellMaterial,.008);
+    box(solar,.005,.244,.003,-.447+x*.299,-.282+y*.282,.064,steel,.001);
+   }
+   cylinder(solar,.025,.7,-.46,-.51,-.19,steel);
+   cylinder(solar,.025,.7,.46,-.51,-.19,steel);
+   solar.rotation.set(-.28,-.3,.1);
+   // Wind generation: tapered blades rotate around the hub.
+   const wind=new T.Group();wind.position.set(-1.55,.52,0);
+   if(mode!=='choose')root.add(wind);
+   const tower=new T.Mesh(new T.CylinderGeometry(.043,.09,1.18,32),steel);tower.position.y=-.2;wind.add(tower);
+   cylinder(wind,.3,.055,0,-.8,0,dark);
+   cylinder(wind,.12,.25,0,.39,0,steel,'z');
+   const rotor=new T.Group();rotor.position.set(0,.39,.16);wind.add(rotor);
+   for(let i=0;i<3;i++){
+    const blade=new T.Shape();blade.moveTo(.03,.05);blade.lineTo(.11,.18);blade.lineTo(.065,.73);blade.quadraticCurveTo(0,.83,-.025,.74);blade.lineTo(-.05,.18);blade.closePath();
+    const mesh=new T.Mesh(new T.ExtrudeGeometry(blade,{depth:.026,bevelEnabled:true,bevelSize:.007,bevelThickness:.007,bevelSegments:2,steps:1}),steel);
+    mesh.rotation.z=i*Math.PI*2/3;rotor.add(mesh);
+   }
+   cylinder(rotor,.092,.07,0,0,.04,green,'z');
+   // A curved leaf represents lower environmental impact and responsible products.
+   const leaf=new T.Group();leaf.position.set(.1,-1.68,.25);
+   if(mode!=='choose')root.add(leaf);
+   const vertices:number[]=[],indices:number[]=[];
+   const rows=20,columns=12;
+   for(let y=0;y<=rows;y++){
+    const v=y/rows,w=Math.sin(Math.PI*v)*.42;
+    for(let x=0;x<=columns;x++){
+     const u=x/columns*2-1;
+     vertices.push(u*w,(v-.5)*1.42,Math.sin(v*Math.PI)*.2*(1-u*u));
+    }
+   }
+   for(let y=0;y<rows;y++)for(let x=0;x<columns;x++){
+    const a=y*(columns+1)+x,b=a+columns+1;indices.push(a,b,a+1,a+1,b,b+1);
+   }
+   const leafGeometry=new T.BufferGeometry();
+   leafGeometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));leafGeometry.setIndex(indices);leafGeometry.computeVertexNormals();
+   leaf.add(new T.Mesh(leafGeometry,leafMaterial));
+   tube(leaf,[new T.Vector3(0,-.85,0),new T.Vector3(0,0,.205),new T.Vector3(0,.7,0)],.013,green);
+   for(let i=1;i<6;i++){
+    const v=i/7,y=(v-.5)*1.42;
+    for(const direction of [-1,1])tube(leaf,[new T.Vector3(0,y,Math.sin(v*Math.PI)*.21),new T.Vector3(direction*Math.sin(v*Math.PI)*.34,y+.15,.055)],.004,green);
+   }
+   leaf.rotation.set(.15,-.2,-.5);
+   // Business efficiency remains represented by a compact industrial drive.
+   const motor=new T.Group();
+   if(mode==='business'){
+    globe.scale.setScalar(1.2);root.add(motor);
+    cylinder(motor,.48,1.06,0,0,0,dark,'x');
+    for(let i=0;i<24;i++){
+     const a=i/24*Math.PI*2;
+     const fin=box(motor,.95,.07,.026,0,Math.sin(a)*.51,Math.cos(a)*.51,steel,.005);fin.rotation.x=-a;
+    }
+    cylinder(motor,.53,.1,.58,0,0,steel,'x');
+    cylinder(motor,.12,.45,.83,0,0,steel,'x');
+    box(motor,.4,.22,.42,-.1,.57,0,dark);
+    box(motor,1.3,.08,.85,0,-.6,0,dark);
+    motor.rotation.y=-.38;
+   }
+   if(mode==='choose')root.visible=false;
+   let width=1,height=1,aspect=1;
+   const resize=()=>{
+    width=Math.max(1,el.clientWidth);height=Math.max(1,el.clientHeight);
+    aspect=width/height;renderer.setSize(width,height);camera.aspect=aspect;camera.updateProjectionMatrix();
+   };
+   const observer=new ResizeObserver(resize);observer.observe(el);resize();
+   let pointerX=0,pointerY=0,px=0,py=0;
+   const onPointer=(e:PointerEvent)=>{
+    const rect=el.getBoundingClientRect();
+    pointerX=Math.max(-1,Math.min(1,(e.clientX-rect.left)/rect.width*2-1));
+    pointerY=Math.max(-1,Math.min(1,(e.clientY-rect.top)/rect.height*2-1));
+   };
+   const reset=()=>{pointerX=0;pointerY=0};
+   el.addEventListener('pointermove',onPointer,{passive:true});el.addEventListener('pointerleave',reset);
+   let frame=0,reveal=0,p=0,last=performance.now(),elapsed=0;
+   const lerp=(a:number,b:number,k:number)=>a+(b-a)*k;
+   function draw(){
+    if(disposed)return;
+    const now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;
+    const active=motionRef.current;if(active)elapsed+=dt;
+    const speed=1-Math.exp(-dt*7);
+    px=lerp(px,active?pointerX:0,speed);py=lerp(py,active?pointerY:0,speed);
+    reveal=active?lerp(reveal,burstRef.current?1:0,speed):Number(burstRef.current);
+    p=active?lerp(p,progress.current,speed):progress.current;
+    if(mode==='choose'){
+     const positions=sphere.geometry.attributes.position.array as Float32Array;
+     const a=active?elapsed*.13:0;
+     for(let i=0;i<positions.length;i+=3){
+      const sx=base[i]*Math.cos(a)+base[i+2]*Math.sin(a);
+      const sz=-base[i]*Math.sin(a)+base[i+2]*Math.cos(a);
+      const scatter=Math.sin(reveal*Math.PI)*.18;
+      positions[i]=lerp(sx,targets[i],reveal)+Math.sin(i*.43)*scatter;
+      positions[i+1]=lerp(base[i+1],targets[i+1],reveal)+Math.cos(i*.71)*scatter;
+      positions[i+2]=lerp(sz,0,reveal);
+     }
+     sphere.geometry.attributes.position.needsUpdate=true;
+     sphere.rotation.set(py*.12*(1-reveal),px*.16*(1-reveal),0);
+     sphere.material.color.set(reveal>.55?0xb7ff45:0xecffe1);
+     sphere.material.size=.13+reveal*.13;
+    } else {
+     root.rotation.y=Math.sin(elapsed*.12)*.07+px*.12+p*.24;
+     root.rotation.x=py*.055;
+     globe.rotation.y=elapsed*.07+p*.8;
+     rotor.rotation.z=-elapsed*.8-p*3;
+     solar.rotation.y=-.3+Math.sin(p*Math.PI)*.25;
+     leaf.rotation.z=-.5+Math.sin(elapsed*.3)*.06;
+     const focus=Math.min(3,Math.floor(p*4));
+     solar.scale.setScalar(focus===1?1.12:1);
+     wind.scale.setScalar(focus===2?1.08:1);
+     leaf.scale.setScalar(focus===3?1.12:1);
+    }
+    // Fit the complete scene to its own panel; never move a model into the text column.
+    const halfFov=Math.tan(38*Math.PI/360);
+    const fitWidth=mode==='choose'?lerp(3.6,6.45,reveal):5.95;
+    const fitHeight=mode==='choose'?3.6:5.3;
+    const distance=Math.max(fitWidth/(2*halfFov*aspect),fitHeight/(2*halfFov))*1.04;
+    camera.position.set(0,0,distance);camera.lookAt(0,0,0);
+    renderer.render(scene,camera);
+    frame=requestAnimationFrame(draw);
+   }
+   draw();
+   cleanup=()=>{
+    cancelAnimationFrame(frame);observer.disconnect();
+    el.removeEventListener('pointermove',onPointer);el.removeEventListener('pointerleave',reset);
+    const geometries=new Set<Three.BufferGeometry>(),materials=new Set<Three.Material>();
+    scene.traverse(object=>{const mesh=object as Three.Mesh;if(mesh.geometry)geometries.add(mesh.geometry);const m=mesh.material;if(m)(Array.isArray(m)?m:[m]).forEach(mat=>materials.add(mat))});
+    geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());
+    env.dispose();renderer.dispose();renderer.domElement.remove();
+   };
+  }).catch(()=>setError(true));
+  return ()=>{disposed=true;cleanup()};
+ },[mode,progress]);
+ return <div className="immersive-canvas" ref={host} role="img" aria-label={mode==='choose'?'Bold spherical point cloud that transforms into the word Enerlyze':mode==='home'?'Connected sustainability ecosystem with solar panels, wind power and a green leaf around a dotted globe':'Efficient industrial drive connected to solar, wind and lower-impact choices'}>
+  {error&&<div className="webgl-fallback"><strong>Connected for a greener future.</strong><p>The 3D view is unavailable on this device. All content and tools remain available.</p></div>}
+ </div>;
 }
-// Volumetric lightning mark: thousands of individual points, never a flat image.
-const boltShape=[[-.04,1.9],[-1.05,-.05],[-.15,-.05],[-.55,-1.9],[1.05,.45],[.12,.45]];function inside(x:number,y:number){let c=false;for(let i=0,j=boltShape.length-1;i<boltShape.length;j=i++){const a=boltShape[i],b=boltShape[j];if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]))c=!c}return c}const pos:number[]=[];const colors:number[]=[];let seed=37;function rand(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646}while(pos.length<6300){const x=(rand()-.5)*2.2,y=(rand()-.5)*3.9;if(inside(x,y)){pos.push(x,y,(rand()-.5)*.5);const c=.55+rand()*.45;colors.push(c*.88,c*.93,c)}}const base=new Float32Array(pos);const cloudGeo=new T.BufferGeometry();cloudGeo.setAttribute('position',new T.Float32BufferAttribute(pos,3));cloudGeo.setAttribute('color',new T.Float32BufferAttribute(colors,3));const pointMat=new T.PointsMaterial({size:.017,vertexColors:true,transparent:true,opacity:.95,blending:T.AdditiveBlending,depthWrite:false});const cloud=new T.Points(cloudGeo,pointMat);scene.add(cloud);cloud.visible=mode==='choose';cloud.rotation.z=-.08;
-// A restrained field of moving energy filaments spans the whole viewport.
-const filaments=new T.Group();scene.add(filaments);for(let j=0;j<6;j++){const points=[];for(let i=0;i<90;i++){const x=-12+i*.27;points.push(new T.Vector3(x,Math.sin(x*.22+j*.38)*1.2+(j-3)*.22,-3-j*.15))}const geom=new T.BufferGeometry().setFromPoints(points);filaments.add(new T.Line(geom,new T.LineBasicMaterial({color:0x8190a8,transparent:true,opacity:.09})))}
-let pointerX=0,pointerY=0,hoverX=0,hoverY=0;const pointer=(e:PointerEvent)=>{pointerX=e.clientX/innerWidth*2-1;pointerY=e.clientY/innerHeight*2-1};window.addEventListener('pointermove',pointer,{passive:true});let width=1,height=1;function resize(){width=el.clientWidth;height=el.clientHeight;renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix()}const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(el);resize();let frame=0,p=0,dispersion=0;let time=performance.now();const smooth=(a:number,b:number,t:number)=>a+(b-a)*t;const clamp=(v:number)=>Math.max(0,Math.min(1,v));const ease=(v:number)=>{v=clamp(v);return v*v*(3-2*v)};
-function render(){if(disposed)return;const now=performance.now(),dt=Math.min((now-time)/1000,.05);time=now;const t=now/1000;const active=motionRef.current;dispersion=smooth(dispersion,burstRef.current&&active?1:0,.06);p=active?smooth(p,progress.current,1-Math.exp(-dt*7)):0;hoverX=smooth(hoverX,active?pointerX:0,.04);hoverY=smooth(hoverY,active?pointerY:0,.04);const narrow=width<760;const spread=ease((p-.12)/.28)*(1-ease((p-.82)/.18)*.7);for(const part of parts)part.object.position.lerpVectors(part.from,part.to,spread);const zoom=ease((p-.47)/.2)*(1-ease((p-.76)/.17));const final=ease((p-.8)/.2);assembly.position.x=mode==='business'?(narrow?0:1.25):(narrow?0:1.75);assembly.position.y=narrow?-1.35:0;
-white.transparent=true;white.opacity=1-zoom*.97;white.depthWrite=zoom<.5;glass.opacity=.36*(1-zoom);if(mode==='home'){assembly.rotation.y=-.28-spread*.32+zoom*.63+hoverX*.075;assembly.rotation.x=-.04+hoverY*.055;assembly.rotation.z=.035*(1-zoom);for(let i=0;i<drums.length;i++)drums[i].rotation.x=-(Math.floor(13472*(p+.05)/Math.pow(10,4-i))+(p*25)%1)*Math.PI/5;gears.forEach((g,i)=>g.rotation.z=(i%2?1:-1)*(p*24+(active?t*.12:0)));camera.position.set(smooth(narrow?0:.5,narrow?0:1.45,zoom),smooth(narrow?.6:.5,1.25,zoom),smooth(narrow?11.7:10.8,5.1,zoom));camera.lookAt(narrow?0:1.05,smooth(narrow?-.2:0,.85,zoom),zoom*.75)}else if(mode==='business'){assembly.rotation.y=-.55+spread*.7+hoverX*.07;assembly.rotation.z=.045;gears.forEach((g,i)=>g.rotation.z=(i%2?1:-1)*(p*16+(active?t*.4:0)));camera.position.set(smooth(narrow?0:.7,2.6,zoom),smooth(.7,.2,zoom),smooth(narrow?15.3:12.5,7.3,zoom));camera.lookAt(narrow?0:1.1,narrow?-.2:0,zoom*.3)}else{camera.position.set(0,0,narrow?9.5:8.5);camera.lookAt(0,0,0);cloud.position.set(narrow?.5:1.9,narrow?-.05:.05,0);cloud.rotation.y=active?Math.sin(t*.18)*.32+hoverX*.45:.25;cloud.rotation.x=hoverY*.16;const values=cloudGeo.attributes.position.array as Float32Array;for(let i=0;i<values.length;i+=3){const pulse=active?Math.sin(t*1.3+base[i+1]*2.3)*.019:0;values[i]=base[i]*(1+pulse)+Math.sin(i*7.13)*dispersion*2;values[i+1]=base[i+1]+Math.cos(i*3.72)*dispersion*1.6;values[i+2]=base[i+2]+Math.sin(i*1.91)*dispersion*2+(active?Math.sin(t+base[i+1]*3)*.055:0)}cloudGeo.attributes.position.needsUpdate=true}
-filaments.rotation.z=active?Math.sin(t*.07)*.04+hoverX*.015:0;filaments.position.y=hoverY*.1;renderer.render(scene,camera);frame=requestAnimationFrame(render)}render();cleanup=()=>{cancelAnimationFrame(frame);window.removeEventListener('pointermove',pointer);resizeObserver.disconnect();scene.traverse(o=>{const m=o as Three.Mesh;m.geometry?.dispose();const mats=Array.isArray(m.material)?m.material:[m.material];for(const mat of mats)mat?.dispose()});textures.forEach(t=>t.dispose());envTex.dispose();renderer.dispose();renderer.domElement.remove()};}).catch(()=>setError(true));return()=>{disposed=true;cleanup()}},[mode,progress]);return <div className="immersive-canvas" ref={host} role="img" aria-label={mode==='choose'?'Animated volumetric point cloud lightning logo':mode==='home'?'Scroll-controlled exploded electricity meter with circuit board, gears, and rotating number drums':'Scroll-controlled industrial motor and gearbox with separated housing, copper stator, rotor and transmission'}>{error&&<div className="webgl-fallback"><span>ENERLYZE</span><p>The interactive 3D view is unavailable on this device.<br/>You can still explore every section and use the energy calculator.</p></div>}</div>}
 
 
 

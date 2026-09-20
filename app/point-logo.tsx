@@ -1,4 +1,28 @@
 "use client";
 import {useEffect,useRef} from 'react';
-export default function PointLogo({motion=true}:{motion?:boolean}){const ref=useRef<HTMLCanvasElement>(null);useEffect(()=>{const c=ref.current!,ctx=c.getContext('2d')!;c.width=100;c.height=120;const points:number[][]=[];const poly=[[-.04,1.9],[-1.05,-.05],[-.15,-.05],[-.55,-1.9],[1.05,.45],[.12,.45]];for(let y=-1.9;y<1.9;y+=.14)for(let x=-1.05;x<1.05;x+=.12){let inside=false;for(let i=0,j=5;i<6;j=i++){const a=poly[i],b=poly[j];if(((a[1]>y)!==(b[1]>y))&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])inside=!inside}if(inside)points.push([x,y,Math.sin(x*19+y*12)*.2])}let frame=0;const reduced=!motion || matchMedia('(prefers-reduced-motion: reduce)').matches;function draw(t:number){ctx.clearRect(0,0,100,120);const a=reduced?.2:Math.sin(t*.0005)*.4;for(const p of points){const x=p[0]*Math.cos(a)+p[2]*Math.sin(a);ctx.fillStyle=`rgba(239,242,250,${.55+(p[2]+.2)})`;ctx.beginPath();ctx.arc(50+x*29,60-p[1]*27,1.1,0,Math.PI*2);ctx.fill()}frame=requestAnimationFrame(draw)}frame=requestAnimationFrame(draw);return()=>cancelAnimationFrame(frame)},[motion]);return <canvas ref={ref} className="point-logo" aria-hidden="true"/>}
+export default function PointLogo({motion=true}:{motion?:boolean}){
+ const ref=useRef<HTMLCanvasElement>(null);
+ useEffect(()=>{
+  const canvas=ref.current!,ctx=canvas.getContext('2d')!;
+  canvas.width=112;canvas.height=112;
+  const points:number[][]=[];
+  for(let i=0;i<145;i++){
+   const y=1-(i+.5)/145*2,r=Math.sqrt(1-y*y),a=i*Math.PI*(3-Math.sqrt(5));
+   points.push([Math.cos(a)*r,y,Math.sin(a)*r]);
+  }
+  let frame=0;
+  const draw=(time:number)=>{
+   ctx.clearRect(0,0,112,112);
+   const angle=motion?time*.00016:.25;
+   const rotated=points.map(([x,y,z])=>[x*Math.cos(angle)+z*Math.sin(angle),y,-x*Math.sin(angle)+z*Math.cos(angle)]).sort((a,b)=>a[2]-b[2]);
+   for(const [x,y,z] of rotated){
+    ctx.fillStyle=z>.4?'#b7ff45':`rgba(229,244,228,${.4+(z+1)*.28})`;
+    ctx.beginPath();ctx.arc(56+x*44,56+y*44,1.7+(z+1)*.5,0,Math.PI*2);ctx.fill();
+   }
+   if(motion)frame=requestAnimationFrame(draw);
+  };
+  draw(0);return()=>cancelAnimationFrame(frame);
+ },[motion]);
+ return <canvas ref={ref} className="point-logo" aria-hidden="true"/>;
+}
 
