@@ -12,8 +12,8 @@ export default function SoundControl(){
   const click=(event:Event)=>{if(interactive(event))playCue('tap');};
   const hover=(event:PointerEvent)=>{if(event.pointerType!=='touch'&&interactive(event)&&!interactive(event)?.contains(event.relatedTarget as Node|null))playCue('hover');};
   const change=()=>playCue('change');const visibility=()=>pauseSound(document.hidden);
-  document.addEventListener('pointerdown',activate,true);document.addEventListener('keydown',activate,true);
+  document.addEventListener('pointerdown',activate,true);document.addEventListener('click',activate,true);document.addEventListener('keydown',activate,true);
   document.addEventListener('click',click);document.addEventListener('pointerover',hover);document.addEventListener('change',change);document.addEventListener('visibilitychange',visibility);
-  return()=>{document.removeEventListener('pointerdown',activate,true);document.removeEventListener('keydown',activate,true);document.removeEventListener('click',click);document.removeEventListener('pointerover',hover);document.removeEventListener('change',change);document.removeEventListener('visibilitychange',visibility)};
+  return()=>{document.removeEventListener('pointerdown',activate,true);document.removeEventListener('click',activate,true);document.removeEventListener('keydown',activate,true);document.removeEventListener('click',click);document.removeEventListener('pointerover',hover);document.removeEventListener('change',change);document.removeEventListener('visibilitychange',visibility)};
  },[]);return null;
 }
