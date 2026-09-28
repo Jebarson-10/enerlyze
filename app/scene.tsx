@@ -198,7 +198,7 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
      }
      sphere.geometry.attributes.position.needsUpdate=true;
      sphere.rotation.set(py*.12*(1-reveal),px*.16*(1-reveal),0);
-     sphere.material.color.set(reveal>.55?0xb7ff45:0xecffe1);
+     sphere.material.color.set(reveal>.55?0x80beff:0xdbeaff);
      sphere.material.size=.13+reveal*.13;
     } else {
      root.rotation.y=Math.sin(elapsed*.12)*.07+px*.12+p*.24;

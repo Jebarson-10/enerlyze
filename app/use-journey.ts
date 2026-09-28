@@ -11,12 +11,14 @@ export function useJourney(
 ) {
   useEffect(() => {
     const element = story.current;
-    if (!element || mode === 'choose' || compact) return;
+    if (!element || mode === 'choose') return;
     let frame = 0;
     // Continuous values stay outside React. Chapter content only updates when
     // its invisible document section crosses the observer's reading line.
     const update = () => {
-      const distance = element.offsetHeight - innerHeight;
+      const distance = compact
+        ? Math.max(innerHeight * .8, element.querySelector('.journey-sticky')?.clientHeight ?? innerHeight)
+        : element.offsetHeight - innerHeight;
       progress.current = Math.min(1, Math.max(0, -element.getBoundingClientRect().top / Math.max(1, distance)));
       frame = requestAnimationFrame(update);
     };
@@ -30,9 +32,9 @@ export function useJourney(
       }, { rootMargin: `0px 0px -${Math.max(0, innerHeight - 1)}px 0px`, threshold: 0 });
       element.querySelectorAll('[data-chapter]').forEach(node => observer.observe(node));
     };
-    observe();
+    if (!compact) observe();
     window.addEventListener('resize', observe);
     update();
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener('resize', observe); };
+    return () => { cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize', observe); };
   }, [story, progress, mode, compact, setChapter]);
 }

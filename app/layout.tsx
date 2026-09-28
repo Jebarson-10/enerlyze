@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./revamp.css";
+import "./blue.css";
+import SiteEffects from './site-effects';
 
 export const metadata: Metadata = {
   title: "Enerlyze — A greener way forward.",
@@ -21,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">{children}<SiteEffects/></body>
     </html>
   );
 }

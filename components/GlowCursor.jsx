@@ -144,6 +144,7 @@ const GlowCursor = ({
   blendMode = 'screen',
   maxDevicePixelRatio = 1.5,
   enabled = true,
+  viewportMode = false,
   children,
   className = '',
   style,
@@ -322,9 +323,11 @@ const GlowCursor = ({
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
-    container.addEventListener('pointermove', updatePointer);
-    container.addEventListener('pointerenter', updatePointer);
-    container.addEventListener('pointerleave', onPointerLeave);
+    const pointerTarget = viewportMode ? window : container;
+    const leaveTarget = viewportMode ? document.documentElement : container;
+    pointerTarget.addEventListener('pointermove', updatePointer);
+    pointerTarget.addEventListener('pointerenter', updatePointer);
+    leaveTarget.addEventListener('pointerleave', onPointerLeave);
     resize();
     raf = requestAnimationFrame(render);
 
@@ -332,13 +335,13 @@ const GlowCursor = ({
       destroyed = true;
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
-      container.removeEventListener('pointermove', updatePointer);
-      container.removeEventListener('pointerenter', updatePointer);
-      container.removeEventListener('pointerleave', onPointerLeave);
+      pointerTarget.removeEventListener('pointermove', updatePointer);
+      pointerTarget.removeEventListener('pointerenter', updatePointer);
+      leaveTarget.removeEventListener('pointerleave', onPointerLeave);
       mesh.geometry.remove();
       program.remove();
     };
-  }, [maxDevicePixelRatio]);
+  }, [maxDevicePixelRatio, viewportMode]);
 
   return (
     <div ref={containerRef} className={`glow-cursor${className ? ` ${className}` : ''}`} style={style} {...rest}>
