@@ -1,6 +1,8 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import type * as Three from 'three';
+import {introSound,playCue} from '@/lib/sound';
+import {SoundButton} from './sound-control';
 const chapters=[['01 / WATER','A simple beginning.','Water flows into the vessel.'],['02 / HEAT','Energy changes form.','An LPG flame heats the water.'],['03 / MOTION','Steam becomes movement.','Expanding steam drives the turbine.'],['04 / ELECTRICITY','Movement becomes power.','A generator turns rotation into electricity.'],['05 / IDENTITY','Every connection matters.','Power gathers into our point-cloud identity.'],['06 / ENERLYZE','Your personal partner','for a greener lifestyle.']];
 
 function IntroScene({onStep,onFinish}:{onStep:(n:number)=>void;onFinish:()=>void}){
@@ -49,26 +51,67 @@ function IntroScene({onStep,onFinish}:{onStep:(n:number)=>void;onFinish:()=>void
    const textCanvas=document.createElement('canvas');textCanvas.width=1200;textCanvas.height=240;const ctx=textCanvas.getContext('2d')!;ctx.font='700 170px Space Grotesk, sans-serif';ctx.fillStyle='white';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('enerlyze',600,120);const pixels=ctx.getImageData(0,0,1200,240).data;const letters:number[][]=[];for(let y=0;y<240;y+=5)for(let x=0;x<1200;x+=5)if(pixels[(y*1200+x)*4+3]>120)letters.push([(x-600)/180,(120-y)/180,0]);
    for(let i=0;i<pointCount;i++){const y=1-i/(pointCount-1)*2,r=Math.sqrt(1-y*y),a=i*Math.PI*(3-Math.sqrt(5));globe.set([Math.cos(a)*r*1.3,y*1.3,Math.sin(a)*r*1.3],i*3);electric.set([Math.cos(a)*2.6,Math.sin(a)*2.0,(i%21-10)*.14],i*3);word.set(letters[i%letters.length]??[0,0,0],i*3);}
    const pointGeometry=new T.BufferGeometry();pointGeometry.setAttribute('position',new T.BufferAttribute(positions,3));const pointMaterial=new T.PointsMaterial({color:0x96c9ff,size:.043,transparent:true,opacity:1,depthWrite:false});materials.push(pointMaterial);const identity=new T.Points(pointGeometry,pointMaterial);scene.add(identity);
-   const clockStart=performance.now();let frame=0;let stage=-1;let aspect=1;
+
+   // The components inhabit one continuous world, connected by pipework and cables.
+   turbine.position.x=5;generator.position.x=10;arcs.position.x=10;identity.position.x=15;
+   const gauge=new T.Group();gauge.position.set(.72,.55,0);cyl(gauge,.14,.04,0,0,0,metal,'z');cyl(gauge,.12,.045,0,0,.012,ceramicMaterial(),'z');
+   function ceramicMaterial(){const m=new T.MeshStandardMaterial({color:0xe8edf2,roughness:.5});materials.push(m);return m;}
+   const needle=box(gauge,0,.025,.046,.012,.11,.008,dark);boiler.add(gauge);
+   for(let i=0;i<9;i++){const a=(i/8)*Math.PI*1.4-.2;const tick=box(gauge,Math.cos(a)*.095,Math.sin(a)*.095,.041,.018,.005,.005,dark);tick.rotation.z=a;}
+   const outlet=tube(boiler,[new T.Vector3(.70,.35,0),new T.Vector3(1.18,.65,0),new T.Vector3(1.62,.65,0)],.06,metal);ring(boiler,.1,.025,1.6,.65,0,metal,'x');
+   const ripples:Three.Mesh[]=[];for(let i=0;i<3;i++){const ripple=ring(boiler,.14+i*.13,.008,0,.1,0,waterMat);ripples.push(ripple);}
+   for(let j=0;j<2;j++)for(let i=0;i<24;i++){const a=i*Math.PI/12;const vane=box(wheel,(j-.5)*.23,Math.cos(a)*.70,Math.sin(a)*.70,.10,.17,.04,copper);vane.rotation.x=a+.3;}
+   ring(turbine,.9,.02,.16,0,0,copper,'x');ring(turbine,.9,.02,-.16,0,0,copper,'x');
+   for(const side of [-1,1]){ring(generator,.46,.04,side*.82,0,0,copper,'x');for(let i=0;i<8;i++){const a=i*Math.PI/4;cyl(generator,.033,.08,side*.78,Math.cos(a)*.55,Math.sin(a)*.55,dark,'x');}}
+   tube(generator,[new T.Vector3(.2,.82,0),new T.Vector3(1.0,.85,.1),new T.Vector3(1.5,.5,.1)],.022,copper);
+   cyl(generator,.055,2.55,-2.23,0,0,metal,'x');ring(generator,.16,.05,-3.45,0,0,copper,'x');ring(generator,.16,.05,-1.02,0,0,copper,'x');
+   const nameplate=box(generator,0,.05,.62,.48,.24,.015,metal);for(let i=0;i<4;i++)box(generator,0,.11-i*.04,.633,.34-i*.025,.009,.004,dark);
+   const arcObjects=arcs.children as Three.Line[];
+   stream.material=waterMat.clone();materials.push(stream.material);
+   const fades=new Map<Three.Object3D,{mat:Three.Material;opacity:number}[]>();
+   for(const group of [boiler,turbine,generator]){
+    const map=new Map<Three.Material,Three.Material>();const list:{mat:Three.Material;opacity:number}[]=[];
+    group.traverse(object=>{const mesh=object as Three.Mesh;if(!mesh.material)return;const clone=(old:Three.Material)=>{let mat=map.get(old);if(!mat){mat=old.clone();map.set(old,mat);materials.push(mat);list.push({mat,opacity:mat.opacity});}return mat;};mesh.material=Array.isArray(mesh.material)?mesh.material.map(clone):clone(mesh.material);});fades.set(group,list);
+   }
+   const fade=(group:Three.Object3D,alpha:number)=>{group.visible=alpha>.001;for(const item of fades.get(group)??[]){item.mat.transparent=alpha<.999||item.opacity<1;item.mat.opacity=item.opacity*alpha;item.mat.depthWrite=alpha>.5;}};
+   const clockStart=performance.now();let frame=0;let stage=-1;let aspect=1;let lastTime=0;let identityCue=false;
    const resize=()=>{const w=node.clientWidth,h=node.clientHeight;aspect=w/Math.max(1,h);renderer.setSize(w,h);camera.aspect=aspect;camera.updateProjectionMatrix();};const observer=new ResizeObserver(resize);observer.observe(node);resize();
-   const cuts=[0,4.5,9.5,14.5,18.5,21.5,26];
-   const animate=()=>{if(disposed)return;const t=(performance.now()-clockStart)/1000;if(t>=26){callbacks.current.onFinish();return;}const next=cuts.findIndex((cut,i)=>i<6&&t>=cut&&t<cuts[i+1]);if(next!==stage){stage=next;callbacks.current.onStep(stage);node.dataset.stage=String(stage);}
-    const local=t-cuts[stage],duration=cuts[stage+1]-cuts[stage];const ease=Math.min(1,local/.6,Math.max(0,(duration-local)/.45));boiler.visible=stage<=1;turbine.visible=stage===2;generator.visible=stage===3;arcs.visible=stage===3;identity.visible=stage>=4;
-    for(const group of [boiler,turbine,generator])group.scale.setScalar(.93+.07*ease);fire.visible=stage===1;pour.visible=stream.visible=stage===0;drops.forEach((drop,i)=>{drop.visible=stage===0;const k=(t*.8+i/30)%1;drop.position.set(-.57+k*.31,.1+(1-k)*1.25,Math.sin(i*3)*.06);drop.scale.set(1,1.7,1);});
-    const fill=stage===0?Math.min(1,local/3.5):1;liquid.scale.y=Math.max(.04,fill);liquid.position.y=-.36+fill*.225;surface.position.y=-.36+fill*.45;surface.scale.setScalar(1+Math.sin(t*7)*.006);fire.children.forEach((f,i)=>f.scale.y=1+Math.sin(t*8+i)*.15);
-    bubbles.forEach((b,i)=>{b.visible=stage===1;const a=i*2.399;b.position.set(Math.cos(a)*.53,-.33+((t*.17+i/30)%1)*.42,Math.sin(a)*.53);});
-    wheel.rotation.x=t*(stage===2?Math.min(5,local*1.4):0);shaft.rotation.x=t*7;arcs.rotation.z=t*.12;arcMaterial.opacity=.5+Math.sin(t*5)*.15;
-    steam.forEach((sprite,i)=>{sprite.visible=stage===1||stage===2;const k=(t*.28+i/100)%1;const a=i*2.399;if(stage===1)sprite.position.set(Math.cos(a)*(.16+k*.35),.42+k*1.6,Math.sin(a)*(.16+k*.35));else sprite.position.set(-2.1+k*2.7,.55+Math.sin(k*Math.PI)*.25+Math.sin(a)*.12,Math.cos(a)*.16);sprite.scale.setScalar((stage===1?.18:.12)+k*.45);(sprite.material as Three.SpriteMaterial).opacity=Math.sin(k*Math.PI)*.30*Math.min(1,local);});
-    if(stage>=4){const morph=stage===5?T.MathUtils.smoothstep(local,0,2):0;const gather=stage===4?T.MathUtils.smoothstep(local,0,2):1;for(let i=0;i<pointCount*3;i++){positions[i]=(electric[i]+(globe[i]-electric[i])*gather)*(1-morph)+word[i]*morph;}pointGeometry.attributes.position.needsUpdate=true;identity.rotation.y=stage===4?t*.14:(1-morph)*t*.14;identity.rotation.z=0;pointMaterial.opacity=ease;}
-    const identityStage=stage>=4;camera.position.set(identityStage?0:3.2,identityStage?.05:1.9,Math.max(identityStage?8.5:7.2,(identityStage?7.7:5.4)/(2*Math.tan(Math.PI/10)*aspect)));camera.lookAt(0,.25,0);renderer.render(scene,camera);frame=requestAnimationFrame(animate);
-   };animate();cleanup=()=>{cancelAnimationFrame(frame);observer.disconnect();const geometries=new Set<Three.BufferGeometry>();scene.traverse(o=>{const m=o as Three.Mesh;if(m.geometry)geometries.add(m.geometry)});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());smokeTexture.dispose();env.dispose();renderer.dispose();renderer.domElement.remove();};
+   const smooth=(t:number,a:number,b:number)=>T.MathUtils.smoothstep(t,a,b);
+   const animate=()=>{
+    if(disposed)return;const t=(performance.now()-clockStart)/1000,dt=Math.min(.05,t-lastTime);lastTime=t;
+    if(t>=30){introSound(-1);callbacks.current.onFinish();return;}
+    const next=t<4?0:t<9?1:t<14?2:t<19?3:t<24?4:5;
+    if(next!==stage){stage=next;callbacks.current.onStep(stage);node.dataset.stage=String(stage);}
+    node.dataset.time=t.toFixed(1);introSound(t);
+    const heat=smooth(t,3,5)*(1-smooth(t,10,13));
+    const boilerAlpha=1-smooth(t,10,13),turbineAlpha=smooth(t,8,10)*(1-smooth(t,15,18)),generatorAlpha=smooth(t,13,15)*(1-smooth(t,19,22));
+    fade(boiler,boilerAlpha);fade(turbine,turbineAlpha);fade(generator,generatorAlpha);
+    const pourAlpha=1-smooth(t,3.5,5);pour.visible=stream.visible=pourAlpha>.001;pour.scale.setScalar(.85+.15*pourAlpha);pour.position.x=-.9-(1-pourAlpha)*.8;
+    (stream.material as Three.Material).opacity=.68*pourAlpha*boilerAlpha;
+    drops.forEach((drop,i)=>{drop.visible=pourAlpha>.1;const k=(t*.8+i/30)%1;drop.position.set(-.57+k*.31,.1+(1-k)*1.25,Math.sin(i*3)*.06);drop.scale.set(1,1.7,1);});
+    const fill=Math.min(1,t/3.5);liquid.scale.y=Math.max(.04,fill);liquid.position.y=-.36+fill*.225;surface.position.y=-.36+fill*.45;surface.scale.setScalar(1+Math.sin(t*7)*.008);ripples.forEach((r,i)=>{r.position.y=surface.position.y+.007;r.scale.setScalar(.7+((t*.8+i/3)%1)*1.5);r.visible=t<7;});
+    fire.visible=heat>.001;fire.children.forEach((f,i)=>f.scale.y=(.9+Math.sin(t*9+i)*.18)*heat);needle.rotation.z=-.8+smooth(t,4,10)*1.7;
+    bubbles.forEach((b,i)=>{b.visible=heat>.2;const a=i*2.399;b.position.set(Math.cos(a)*.53,-.33+((t*.24+i/30)%1)*.42,Math.sin(a)*.53);});
+    wheel.rotation.x+=dt*6*smooth(t,9,12);shaft.rotation.x+=dt*8*smooth(t,13,16);
+    const jet=smooth(t,7,11);steam.forEach((sprite,i)=>{const k=(t*.3+i/100)%1,a=i*2.399;const boilX=Math.cos(a)*(.16+k*.35),boilY=.42+k*1.6;const jetX=1.55+k*3.4,jetY=.65+Math.sin(k*Math.PI)*.32; sprite.position.set(T.MathUtils.lerp(boilX,jetX,jet),T.MathUtils.lerp(boilY,jetY,jet),Math.sin(a)*(.12+k*.2));sprite.scale.setScalar(.16+k*.36);(sprite.material as Three.SpriteMaterial).opacity=Math.sin(k*Math.PI)*.32*smooth(t,4,7)*(1-smooth(t,13,16));sprite.visible=t>4&&t<16;});
+    arcs.visible=t>16&&t<23;arcMaterial.opacity=.65*smooth(t,16,18)*(1-smooth(t,21,23));arcs.rotation.z=t*.10;
+    arcObjects.forEach((arc,j)=>{const attr=arc.geometry.attributes.position;for(let i=0;i<attr.count;i++){const a=j*Math.PI/6,r=.3+i*.1;attr.setXYZ(i,Math.cos(a)*r,Math.sin(a)*r,Math.sin(i*2.3+j+t*4)*.13);}attr.needsUpdate=true;});
+    identity.visible=t>18;const morph=smooth(t,24,27),gather=smooth(t,19,23);identity.position.x=T.MathUtils.lerp(10,15,smooth(t,18,22));
+    for(let i=0;i<pointCount*3;i++)positions[i]=(electric[i]+(globe[i]-electric[i])*gather)*(1-morph)+word[i]*morph;
+    pointGeometry.attributes.position.needsUpdate=true;identity.rotation.y=(1-morph)*t*.14;pointMaterial.opacity=smooth(t,18,20)*(1-smooth(t,29,30));
+    if(t>25&&!identityCue){identityCue=true;playCue('identity');}
+    const focus=5*smooth(t,8,12)+5*smooth(t,13,17)+5*smooth(t,18,22),front=smooth(t,18,24);
+    const distance=Math.max(7.5,7.7/(2*Math.tan(Math.PI/10)*aspect));camera.position.set(focus+3.2*(1-front),1.6*(1-front),distance);camera.lookAt(focus,.20,0);
+    renderer.render(scene,camera);frame=requestAnimationFrame(animate);
+   };animate();cleanup=()=>{introSound(-1);cancelAnimationFrame(frame);observer.disconnect();const geometries=new Set<Three.BufferGeometry>();scene.traverse(o=>{const m=o as Three.Mesh;if(m.geometry)geometries.add(m.geometry)});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());smokeTexture.dispose();env.dispose();renderer.dispose();renderer.domElement.remove();};
   }).catch(()=>callbacks.current.onFinish());return()=>{disposed=true;cleanup()};
  },[]);
  return <div ref={host} className="intro-3d" role="img" aria-label="Water is heated by an LPG flame, steam spins a turbine, electricity becomes the Enerlyze point cloud and name"/>;
 }
 export default function StartupIntro(){
- const [visible,setVisible]=useState(false);const [step,setStep]=useState(0);const skip=useRef<HTMLButtonElement>(null);const complete=()=>{try{sessionStorage.setItem('enerlyze-intro-v1','seen')}catch{}setVisible(false)};
- useEffect(()=>{try{if(sessionStorage.getItem('enerlyze-intro-v1'))return}catch{}if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;setVisible(true);},[]);
- useEffect(()=>{if(!visible)return;const previousOverflow=document.body.style.overflow;const content=document.getElementById('site-content');const previousFocus=document.activeElement as HTMLElement|null;document.body.style.overflow='hidden';if(content)content.inert=true;skip.current?.focus();return()=>{document.body.style.overflow=previousOverflow;if(content)content.inert=false;previousFocus?.focus();}},[visible]);
- if(!visible)return null;const chapter=chapters[step];return <div className="startup-intro" role="dialog" aria-modal="true" aria-label="Enerlyze introduction" onKeyDown={e=>{if(e.key==='Escape')complete()}}><div className="intro-top"><span>enerlyze</span><button ref={skip} onClick={complete}>Skip intro ↗</button></div><IntroScene onStep={setStep} onFinish={complete}/><div className="intro-caption" key={step}><span>{chapter[0]}</span><h2>{chapter[1]}</h2><p>{chapter[2]}</p></div><div className="intro-progress" aria-hidden="true">{chapters.map((_,i)=><i key={i} className={i<=step?'complete':''}/>)}</div><small className="intro-scope">A visual energy-conversion story · illustrative sequence</small></div>;
+ const [visible,setVisible]=useState(false);const [step,setStep]=useState(0);const skip=useRef<HTMLButtonElement>(null);const complete=()=>{try{sessionStorage.setItem('enerlyze-intro-v2','seen')}catch{}setVisible(false)};
+ useEffect(()=>{try{if(sessionStorage.getItem('enerlyze-intro-v2'))return}catch{}if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;setVisible(true);},[]);
+ useEffect(()=>{const replay=()=>{setStep(0);setVisible(true);};window.addEventListener('enerlyze-replay-intro',replay);return()=>window.removeEventListener('enerlyze-replay-intro',replay);},[]);
+ useEffect(()=>{if(!visible)return;const previousOverflow=document.body.style.overflow;const content=document.getElementById('site-content');const previousFocus=document.activeElement as HTMLElement|null;document.body.style.overflow='hidden';document.body.classList.add('intro-active');if(content)content.inert=true;skip.current?.focus();return()=>{document.body.style.overflow=previousOverflow;document.body.classList.remove('intro-active');introSound(-1);if(content)content.inert=false;previousFocus?.focus();}},[visible]);
+ if(!visible)return null;const chapter=chapters[step];return <div className="startup-intro" role="dialog" aria-modal="true" aria-label="Enerlyze introduction" onKeyDown={e=>{if(e.key==='Escape')complete()}}><div className="intro-top"><span>enerlyze</span><div className="intro-actions"><SoundButton className="intro-sound"/><button ref={skip} onClick={complete}>Skip intro ↗</button></div></div><IntroScene onStep={setStep} onFinish={complete}/><div className="intro-caption" key={step}><h2>{chapter[1]}</h2><p>{chapter[2]}</p></div><div className="intro-timeline" aria-hidden="true"><i/></div><small className="intro-scope">A visual energy-conversion story · illustrative sequence</small></div>;
 }

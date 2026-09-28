@@ -1,40 +1,21 @@
 'use client';
-
-import { useEffect, type RefObject, type Dispatch, type SetStateAction } from 'react';
-
-export function useJourney(
-  story: RefObject<HTMLElement | null>,
-  progress: RefObject<number>,
-  mode: string,
-  compact: boolean,
-  setChapter: Dispatch<SetStateAction<number>>,
-) {
-  useEffect(() => {
-    const element = story.current;
-    if (!element || mode === 'choose') return;
-    let frame = 0;
-    // Continuous values stay outside React. Chapter content only updates when
-    // its invisible document section crosses the observer's reading line.
-    const update = () => {
-      const distance = compact
-        ? Math.max(innerHeight * .8, element.querySelector('.journey-sticky')?.clientHeight ?? innerHeight)
-        : element.offsetHeight - innerHeight;
-      progress.current = Math.min(1, Math.max(0, -element.getBoundingClientRect().top / Math.max(1, distance)));
-      frame = requestAnimationFrame(update);
-    };
-    let observer: IntersectionObserver;
-    const observe = () => {
-      observer?.disconnect();
-      observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) setChapter(Number((entry.target as HTMLElement).dataset.chapter));
-      });
-      }, { rootMargin: `0px 0px -${Math.max(0, innerHeight - 1)}px 0px`, threshold: 0 });
-      element.querySelectorAll('[data-chapter]').forEach(node => observer.observe(node));
-    };
-    if (!compact) observe();
-    window.addEventListener('resize', observe);
-    update();
-    return () => { cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize', observe); };
-  }, [story, progress, mode, compact, setChapter]);
+import {useEffect,type RefObject,type Dispatch,type SetStateAction} from 'react';
+export function useJourney(story:RefObject<HTMLElement|null>,progress:RefObject<number>,mode:string,compact:boolean,setChapter:Dispatch<SetStateAction<number>>){
+ useEffect(()=>{
+  const element=story.current;if(!element||mode==='choose')return;
+  let frame=0,lastChapter=-1,lastHeader=-1;
+  const update=()=>{
+   const header=document.querySelector('.topbar')?.getBoundingClientRect().height??80;
+   if(header!==lastHeader){lastHeader=header;element.style.setProperty('--nav-height',header+'px');}
+   const rect=element.getBoundingClientRect();
+   progress.current=Math.min(1,Math.max(0,(header-rect.top)/Math.max(1,element.offsetHeight-innerHeight+header)));
+   let chapter=0;
+   if(compact){
+    const line=header+(element.querySelector('.journey-sticky')?.getBoundingClientRect().height??300)+32;
+    element.querySelectorAll('.mobile-story article').forEach((node,i)=>{if(node.getBoundingClientRect().top<=line)chapter=i;});
+   }else chapter=Math.min(3,Math.floor(progress.current*4));
+   if(chapter!==lastChapter){lastChapter=chapter;setChapter(chapter);}
+   frame=requestAnimationFrame(update);
+  };update();return()=>cancelAnimationFrame(frame);
+ },[story,progress,mode,compact,setChapter]);
 }

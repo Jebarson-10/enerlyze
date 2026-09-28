@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useRef,useState,type MutableRefObject} from 'react';
 import type * as Three from 'three';
+import {assemblySound} from '@/lib/sound';
 
 export default function SimpleScene({mode,progress,motion}:{mode:'home'|'business';progress:MutableRefObject<number>;motion:boolean}){
  const host=useRef<HTMLDivElement>(null);const active=useRef(motion);const [error,setError]=useState(false);
@@ -61,14 +62,16 @@ export default function SimpleScene({mode,progress,motion}:{mode:'home'|'busines
     const plate=box(.40,.20,.013,silver,.008);part(plate,-.10,.16,.654,0,.08,.28);for(let i=0;i<5;i++){const label=box(.29-i*.022,.008,.004,dark,.001);part(label,-.1,.22-i*.03,.665,0,.08,.28);}
    }
    let aspect=1;const resize=()=>{const w=Math.max(1,element.clientWidth),h=Math.max(1,element.clientHeight);aspect=w/h;renderer.setSize(w,h);camera.aspect=aspect;camera.updateProjectionMatrix();};
+   let visible=false;const visibility=new IntersectionObserver(entries=>{visible=entries[0]?.isIntersecting??false;},{threshold:.1});visibility.observe(element);
    const observer=new ResizeObserver(resize);observer.observe(element);resize();let frame=0;let expansion=0;let phase=0;let last=performance.now();
    const draw=()=>{if(disposed)return;const now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;const p=Math.max(0,Math.min(1,progress.current));const target=Math.sin(p*Math.PI);
     expansion=active.current?expansion+(target-expansion)*(1-Math.exp(-dt*7)):target;parts.forEach(({object,base,offset})=>object.position.copy(base).addScaledVector(offset,expansion));
     if(active.current)phase+=dt*(mode==='home'?.85:1.7);if(mode==='home')rotor.rotation.y=phase;else rotor.rotation.x=phase;
     root.rotation.y=-.45+p*.5;root.rotation.x=(mode==='home'?.50:.25)+p*.12;
     element.dataset.running=String(active.current);element.dataset.expansion=expansion.toFixed(2);
+    assemblySound(mode,expansion,visible);
     const extent=mode==='home'?6.0:6.7;camera.position.set(0,0,Math.max(extent/(2*Math.tan(35*Math.PI/360)*aspect),5.4/(2*Math.tan(35*Math.PI/360))));camera.lookAt(0,0,0);renderer.render(scene,camera);frame=requestAnimationFrame(draw);
-   };draw();cleanup=()=>{cancelAnimationFrame(frame);observer.disconnect();const geometries=new Set<Three.BufferGeometry>();scene.traverse(o=>{const m=o as Three.Mesh;if(m.geometry)geometries.add(m.geometry)});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());environment.dispose();renderer.dispose();renderer.domElement.remove();};
+   };draw();cleanup=()=>{cancelAnimationFrame(frame);observer.disconnect();visibility.disconnect();assemblySound(mode,0,false);const geometries=new Set<Three.BufferGeometry>();scene.traverse(o=>{const m=o as Three.Mesh;if(m.geometry)geometries.add(m.geometry)});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());environment.dispose();renderer.dispose();renderer.domElement.remove();};
   }).catch(()=>setError(true));return()=>{disposed=true;cleanup()};
  },[mode,progress]);
  return <div className="immersive-canvas simple-scene" ref={host} role="img" aria-label={mode==='home'?'Running BLDC fan with curved blades, copper windings and bearings, separating as you scroll':'Running industrial motor with cooling fins, copper windings and rotating shaft, separating as you scroll'}>{error&&<div className="webgl-fallback"><p>The 3D view is unavailable. All content and tools are still available.</p></div>}</div>;

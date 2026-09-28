@@ -5,6 +5,8 @@ import "./blue.css";
 import "./carbon.css";
 import "./intro.css";
 import StartupIntro from './startup-intro';
+import SoundControl from './sound-control';
+import './motion.css';
 import SiteEffects from './site-effects';
 
 export const metadata: Metadata = {
@@ -26,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased"><div id="site-content">{children}<SiteEffects/></div><StartupIntro/></body>
+      <body className="antialiased"><div id="site-content">{children}<SiteEffects/></div><SoundControl/><StartupIntro/></body>
     </html>
   );
 }
