@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./revamp.css";
 import "./blue.css";
+import "./carbon.css";
+import "./intro.css";
+import StartupIntro from './startup-intro';
 import SiteEffects from './site-effects';
 
 export const metadata: Metadata = {
@@ -23,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}<SiteEffects/></body>
+      <body className="antialiased"><div id="site-content">{children}<SiteEffects/></div><StartupIntro/></body>
     </html>
   );
 }
