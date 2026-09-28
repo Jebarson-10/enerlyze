@@ -2,7 +2,7 @@
 
 The `/shop` catalog and `/calculator` recommendations share `lib/products.ts`.
 Every initial product is a sample. Prices, wattages, and capacity are illustrative.
-Demo purchases never send orders or take payments.
+Buying is disabled for preview listings. No demo checkout or payment flow is shown.
 
 To connect a confirmed partner, replace the sample data with verified specifications,
 set `sample: false`, and supply its approved HTTPS `buyUrl`. Set `affiliate: true`
