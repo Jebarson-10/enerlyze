@@ -44,7 +44,7 @@ function PixelScene({onPhase,onFinish}:{onPhase:(n:number)=>void;onFinish:()=>vo
     for(let i=0;i<3;i++){const px=fx-91+i*58;rect(px,base-114,32,7,ink,buildA);rect(px+27,base-137,7,30,ink,buildA);rect(px+27,base-137,31,7,ink,buildA)}
     rect(fx+48,base-173,20,54,soft,buildA);rect(fx+44,base-177,28,7,ink,buildA);
     for(let i=0;i<3;i++)rect(fx-65+i*52,base-70,28,34,colors[3],buildA*.8);
-    rect(20,base+29,W-40,4,soft,buildA*.65);
+    rect(20,base+12,W-40,4,soft,buildA*.65);
     const wasteA=(1-solution)*buildA;
     for(let i=0;i<36;i++){
      const sourceX=i%2?hx:fx,originY=i%2?base-124:base-155;
@@ -67,7 +67,6 @@ function PixelScene({onPhase,onFinish}:{onPhase:(n:number)=>void;onFinish:()=>vo
      const motorX=fx,motorY=base-52;for(let blade=0;blade<4;blade++){const a=t*13+blade*Math.PI/2;rect(motorX+Math.cos(a)*19-5,motorY+Math.sin(a)*19-5,10,10,colors[1],solution*buildA)}
      dot(motorX-6,motorY-6,12,ink,solution*buildA);
      for(let i=0;i<24;i++){const x=(i%2?hx:fx)+Math.sin(i*2.3)*45,y=135+(i*37%83);dot(x,y,4+i%2,colors[i%2?1:0],solution*buildA*.65)}
-     ctx.globalAlpha=solution*buildA;ctx.fillStyle=colors[1];ctx.font='700 16px Space Grotesk, Arial, sans-serif';ctx.textAlign='center';ctx.fillText('↓ CO₂',center,base+66);ctx.globalAlpha=1;
     }
    }
    const turn=t*.4;
