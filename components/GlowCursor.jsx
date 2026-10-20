@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Mesh, Program, Renderer, Triangle } from 'ogl';
 import './GlowCursor.css';
 
-const MAX_POINTS = 64;
+const MAX_POINTS = 40;
 
 const VERTEX_SHADER = `
 attribute vec2 position;
@@ -18,7 +18,7 @@ void main() {
 const FRAGMENT_SHADER = `
 precision highp float;
 
-#define MAX_POINTS 64
+#define MAX_POINTS 40
 
 uniform vec2 uResolution;
 uniform vec2 uPoints[MAX_POINTS];
@@ -145,6 +145,7 @@ const GlowCursor = ({
   maxDevicePixelRatio = 1.5,
   enabled = true,
   viewportMode = false,
+  instantHotspot = false,
   children,
   className = '',
   style,
@@ -152,6 +153,7 @@ const GlowCursor = ({
 }) => {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  const hotspotRef = useRef(null);
   const propsRef = useRef({});
 
   propsRef.current = {
@@ -173,7 +175,8 @@ const GlowCursor = ({
     fadeDuration,
     maxDevicePixelRatio,
     blendMode,
-    enabled
+    enabled,
+    instantHotspot
   };
 
   useEffect(() => {
@@ -194,6 +197,7 @@ const GlowCursor = ({
     const points = Array.from({ length: MAX_POINTS }, () => ({ x: 0, y: 0 }));
     const target = { x: 0, y: 0 };
     const head = { x: 0, y: 0 };
+    const hotspotElement = hotspotRef.current;
 
     const program = new Program(gl, {
       vertex: VERTEX_SHADER,
@@ -232,6 +236,11 @@ const GlowCursor = ({
     let lastFrameTime = performance.now();
     let raf = 0;
     let destroyed = false;
+    let renderedVisible = false;
+
+    const scheduleFrame = () => {
+      if (!raf && !destroyed) raf = requestAnimationFrame(render);
+    };
 
     const resize = () => {
       width = Math.max(container.clientWidth, 1);
@@ -254,29 +263,43 @@ const GlowCursor = ({
     };
 
     const updatePointer = event => {
-      const rect = container.getBoundingClientRect();
-      const x = clamp(event.clientX - rect.left, 0, rect.width);
-      const y = clamp(rect.height - (event.clientY - rect.top), 0, rect.height);
+      if (event.pointerType === 'touch') return;
+      const samples = event.getCoalescedEvents?.();
+      const latest = samples?.length ? samples[samples.length - 1] : event;
+      // The site-wide overlay fills the viewport; avoid a layout read on every move.
+      const rect = viewportMode ? null : container.getBoundingClientRect();
+      const x = clamp(latest.clientX - (rect?.left ?? 0), 0, rect?.width ?? width);
+      const y = clamp((rect?.height ?? height) - (latest.clientY - (rect?.top ?? 0)), 0, rect?.height ?? height);
       if (!initialized) initializeTrail(x, y);
       target.x = x;
       target.y = y;
       pointerInside = true;
       lastInputTime = performance.now();
+      if (hotspotElement && propsRef.current.instantHotspot) {
+        hotspotElement.style.transform = `translate3d(${x - 3}px, ${height - y - 3}px, 0)`;
+        hotspotElement.style.opacity = '1';
+      }
+      scheduleFrame();
     };
 
     const onPointerLeave = () => {
       pointerInside = false;
       lastInputTime = performance.now();
+      if (hotspotElement) hotspotElement.style.opacity = '0';
+      scheduleFrame();
     };
 
     const render = now => {
       if (destroyed) return;
+      raf = 0;
       const config = propsRef.current;
       const delta = Math.min((now - lastFrameTime) / 16.667, 3);
       lastFrameTime = now;
 
       if (initialized) {
-        const headEase = 1 - Math.pow(1 - clamp(config.followSpeed, 0.01, 0.99), delta);
+        const headEase = config.followSpeed >= 1
+          ? 1
+          : 1 - Math.pow(1 - clamp(config.followSpeed, 0.01, 0.99), delta);
         const chainBase = clamp(0.28 + config.followSpeed * 0.35, 0.08, 0.92);
         const chainEase = 1 - Math.pow(1 - chainBase, delta);
         head.x += (target.x - head.x) * headEase;
@@ -297,6 +320,9 @@ const GlowCursor = ({
 
       const idleFor = now - lastInputTime;
       const shouldFade = config.idleFade && (!pointerInside || idleFor > config.idleTimeout);
+      if (shouldFade && hotspotElement && hotspotElement.style.opacity !== '0') {
+        hotspotElement.style.opacity = '0';
+      }
       const fadeStep = (16.667 * delta) / Math.max(config.fadeDuration, 16);
       const fadeTarget = initialized && config.enabled && !shouldFade ? 1 : 0;
       fade += (fadeTarget - fade) * Math.min(1, fadeStep * 7);
@@ -317,8 +343,13 @@ const GlowCursor = ({
       program.uniforms.uTime.value = now * 0.001;
       program.uniforms.uFade.value = fade;
 
-      renderer.render({ scene: mesh });
-      if (!destroyed) raf = requestAnimationFrame(render);
+      const visible = fade > 0.002;
+      if (visible || renderedVisible) {
+        program.uniforms.uFade.value = visible ? fade : 0;
+        renderer.render({ scene: mesh });
+      }
+      renderedVisible = visible;
+      if (initialized && (visible || (!shouldFade && config.enabled))) scheduleFrame();
     };
 
     const resizeObserver = new ResizeObserver(resize);
@@ -326,16 +357,17 @@ const GlowCursor = ({
     const pointerTarget = viewportMode ? window : container;
     const leaveTarget = viewportMode ? document.documentElement : container;
     pointerTarget.addEventListener('pointermove', updatePointer);
+    if ('onpointerrawupdate' in window) pointerTarget.addEventListener('pointerrawupdate', updatePointer);
     pointerTarget.addEventListener('pointerenter', updatePointer);
     leaveTarget.addEventListener('pointerleave', onPointerLeave);
     resize();
-    raf = requestAnimationFrame(render);
 
     return () => {
       destroyed = true;
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
       pointerTarget.removeEventListener('pointermove', updatePointer);
+      if ('onpointerrawupdate' in window) pointerTarget.removeEventListener('pointerrawupdate', updatePointer);
       pointerTarget.removeEventListener('pointerenter', updatePointer);
       leaveTarget.removeEventListener('pointerleave', onPointerLeave);
       mesh.geometry.remove();
@@ -346,6 +378,7 @@ const GlowCursor = ({
   return (
     <div ref={containerRef} className={`glow-cursor${className ? ` ${className}` : ''}`} style={style} {...rest}>
       <canvas ref={canvasRef} className="glow-cursor__canvas" style={{ mixBlendMode: blendMode }} aria-hidden="true" />
+      {instantHotspot && <span ref={hotspotRef} className="glow-cursor__hotspot" aria-hidden="true" />}
       {children && <div className="glow-cursor__content">{children}</div>}
     </div>
   );

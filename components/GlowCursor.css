@@ -15,6 +15,20 @@
   user-select: none;
 }
 
+.glow-cursor__hotspot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #eaf7ff;
+  box-shadow: 0 0 8px 2px #9fd5ff, 0 0 22px 5px #638fff66;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
 .glow-cursor__content {
   position: relative;
   z-index: 1;
