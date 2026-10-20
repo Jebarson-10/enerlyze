@@ -8,7 +8,9 @@ const filename=require('node:path').resolve('lib/sound.ts');const source=ts.tran
 (async()=>{
  assert.equal(sound.soundEnabled(),false);sound.playCue();sound.introSound(1);assert.equal(contexts,0,'No audio context is created before explicit enable');
  await sound.enableSound(true);assert.equal(contexts,1);assert.equal(sound.soundEnabled(),true);assert.equal(events.at(-1).detail,true);
- sound.introSound(1);assert.ok(nodes[0].gain.value>0,'Enabled master is audible');assert.ok(nodes[2].gain.value>0,'Boiling flame sound participates in the intro');
+ sound.introSound(1);assert.ok(nodes[0].gain.value>0,'Enabled master is audible');assert.equal(nodes[2].gain.value,0,'Old flame sound is absent from the energy-saving story');assert.ok(nodes[4].gain.value>0,'Energy-use hum participates in the intro');
+ sound.introSound(1.7);assert.ok(nodes[3].gain.value>0,'Scan has a subtle sound');
+ sound.introSound(3);assert.ok(nodes[6].gain.value>0,'Efficiency transition has an electric sound');
  sound.introSound(-1);assert.equal(nodes[1].gain.value,0,'Water channel stops when the intro ends');assert.equal(nodes[3].gain.value,0,'Steam channel stops when the intro ends');
  sound.assemblySound('business',.5,false);assert.equal(nodes[4].gain.value,0,'Motor ambience stops outside its visible scene');
  await sound.enableSound(false);assert.equal(nodes[0].gain.value,0);assert.equal(sound.soundEnabled(),false);

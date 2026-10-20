@@ -28,12 +28,12 @@ const smooth=(t:number,a:number,b:number)=>{const p=Math.max(0,Math.min(1,(t-a)/
 export function introSound(t:number){
  intro=t>=0;if(!context||!enabled)return;
  if(!intro){['water','fire','steam','electric'].forEach(name=>gain(name,0));assemblySound(assemblyMode,assemblyExpansion,assemblyVisible);return;}
- gain('water',.24*(1-smooth(t,.55,.95)));
- gain('fire',.18*smooth(t,.25,.5)*(1-smooth(t,1.3,1.7)));
- gain('steam',.11*smooth(t,.75,1.1)*(1-smooth(t,2.2,2.8)));
- gain('motor',.12*smooth(t,1.15,1.45)*(1-smooth(t,2.55,3.05)));
- gain('motor-high',.04*smooth(t,1.3,1.6)*(1-smooth(t,2.55,3.05)));
- gain('electric',.06*smooth(t,2.2,2.5)*(1-smooth(t,3.65,4.3)));
+ gain('water',0);
+ gain('fire',0);
+ gain('steam',.075*smooth(t,1.1,1.3)*(1-smooth(t,2.35,2.65)));
+ gain('motor',.038*smooth(t,.15,.45)*(1-smooth(t,3.15,3.55)));
+ gain('motor-high',.035*smooth(t,2.36,2.65)*(1-smooth(t,3.15,3.55)));
+ gain('electric',.045*smooth(t,2.3,2.65)*(1-smooth(t,4,4.4)));
 }
 export function assemblySound(mode:string,expansion:number,visible:boolean){
  assemblyMode=mode;assemblyExpansion=expansion;assemblyVisible=visible;
