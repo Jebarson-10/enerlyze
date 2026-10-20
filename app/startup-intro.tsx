@@ -11,7 +11,7 @@ function IntroScene({onStep,onFinish}:{onStep:(n:number)=>void;onFinish:()=>void
   Promise.all([import('three'),import('three/addons/geometries/RoundedBoxGeometry.js'),import('three/addons/environments/RoomEnvironment.js')]).then(([T,{RoundedBoxGeometry},{RoomEnvironment}])=>{
    if(disposed||!host.current)return;const node=host.current;
    let renderer:Three.WebGLRenderer;try{renderer=new T.WebGLRenderer({antialias:true,alpha:true});}catch{callbacks.current.onFinish();return;}
-   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setClearColor(0x070d16,1);renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;node.appendChild(renderer.domElement);
+   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setClearColor(0x070d16,0);renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;node.appendChild(renderer.domElement);
    const scene=new T.Scene();const camera=new T.PerspectiveCamera(36,1,.1,60);const pmrem=new T.PMREMGenerator(renderer);const room=new RoomEnvironment();const env=pmrem.fromScene(room,.04);scene.environment=env.texture;room.dispose();pmrem.dispose();
    scene.add(new T.HemisphereLight(0xc7ddff,0x172338,1.2));for(const [x,y,z,intensity,color] of [[-3,4,4,4,0xffffff],[4,1,-3,3,0x568cff]]){const light=new T.DirectionalLight(color,intensity);light.position.set(x,y,z);scene.add(light);}
    const metal=new T.MeshPhysicalMaterial({color:0xc6d3e2,metalness:.96,roughness:.2,clearcoat:.5});const blue=new T.MeshPhysicalMaterial({color:0x224f87,metalness:.62,roughness:.26,clearcoat:1});const dark=new T.MeshStandardMaterial({color:0x192535,metalness:.7,roughness:.4});const copper=new T.MeshStandardMaterial({color:0xbf7744,metalness:.9,roughness:.25});

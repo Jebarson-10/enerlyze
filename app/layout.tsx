@@ -9,6 +9,7 @@ import SoundControl from './sound-control';
 import './motion.css';
 import './premium.css';
 import './material-refresh.css';
+import './theme.css';
 import SiteEffects from './site-effects';
 
 export const metadata: Metadata = {
@@ -59,7 +60,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{__html:"try{document.documentElement.dataset.theme=localStorage.getItem('enerlyze-theme')==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}"}}/></head>
       <body className="antialiased"><script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredData)}}/><div id="site-content">{children}<SiteEffects/></div><SoundControl/><StartupIntro/></body>
     </html>
   );

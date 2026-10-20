@@ -77,7 +77,15 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
     const curve=new T.CatmullRomCurve3(points);
     const m=new T.Mesh(new T.TubeGeometry(curve,28,radius,6,false),material);parent.add(m);return m;
    }
-   const sphere=pointSphere(850,1.45,0xeaffdc,.075);
+   const sphere=pointSphere(850,1.45,0xffffff,.075);
+   const sphereColors=new Float32Array(850*3);
+   const electricPalette=[0x385cff,0x0cb3a7,0xeb5277,0xf0bb23,0x9566ed];
+   for(let i=0;i<850;i++){
+    const color=new T.Color(electricPalette[(Math.floor(i/53)+Math.floor(i*1.618))%electricPalette.length]);
+    sphereColors[i*3]=color.r;sphereColors[i*3+1]=color.g;sphereColors[i*3+2]=color.b;
+   }
+   sphere.geometry.setAttribute('color',new T.BufferAttribute(sphereColors,3));
+   sphere.material.vertexColors=true;
    const base=(sphere.geometry.attributes.position.array as Float32Array).slice();
    const word:number[][]=[];
    'ENERLYZE'.split('').forEach((char,ci)=>letters[char].forEach((row,yi)=>row.split('').forEach((on,xi)=>{
@@ -198,7 +206,7 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
      }
      sphere.geometry.attributes.position.needsUpdate=true;
      sphere.rotation.set(py*.12*(1-reveal),px*.16*(1-reveal),0);
-     sphere.material.color.set(reveal>.55?0x80beff:0xdbeaff);
+     sphere.material.color.set(0xffffff);
      sphere.material.size=.13+reveal*.13;
     } else {
      root.rotation.y=Math.sin(elapsed*.12)*.07+px*.12+p*.24;
