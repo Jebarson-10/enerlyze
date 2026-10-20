@@ -6,7 +6,7 @@ export default function CompanyOverview() {
   return <>
     <section className="purpose-section" aria-labelledby="purpose-title">
       <h2 id="purpose-title">Less wasted.<br/><span>More possible.</span></h2>
-      <div className="purpose-body"><p>Energy is only the beginning. We connect what you consume, what it costs, and what it means for the planet.</p><p>From everyday appliances to entire operations, Enerlyze makes energy intelligence accessible. Understand your impact and find practical ways to reduce it.</p></div>
+      <div className="purpose-body"><p>Energy is only the beginning. We connect what you consume, what it costs, and what it means for the planet.</p><p>Enerlyze is an energy analytics company based in Thiruvananthapuram, Kerala. Enerlyzer helps households estimate electricity use and carbon impact from their bill and appliances. For businesses, we examine equipment-level consumption and help turn findings into efficiency priorities and ESG reporting evidence.</p></div>
     </section>
     <section className="pathways" aria-label="Explore Enerlyze services">
       <article className="pathway pathway-home">

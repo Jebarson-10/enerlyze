@@ -14,5 +14,5 @@ export default function SiteEffects() {
     window.addEventListener('enerlyze-motion', onMotion);
     return () => { media.removeEventListener('change', update); window.removeEventListener('enerlyze-motion', onMotion); };
   }, []);
-  return enabled ? <div className="site-cursor" aria-hidden="true"><GlowCursor viewportMode instantHotspot maxDevicePixelRatio={1} color="#80BEFF" secondaryColor="#648EFF" trailLength={40} trailWidth={7} trailTaper={0.8} followSpeed={1} glowIntensity={1.7} glowSpread={1.1} hotspot={0.75} brightness={1.3} opacity={1} pulseSpeed={1.1} noiseStrength={0.025} idleFade idleTimeout={700} fadeDuration={900} blendMode="screen" /></div> : null;
+  return enabled ? <div className="site-cursor" aria-hidden="true"><GlowCursor viewportMode instantHotspot maxDevicePixelRatio={1} color="#9dcaff" secondaryColor="#82ddcf" trailLength={18} trailSegmentLength={5.8} trailWidth={4.5} trailTaper={0.9} followSpeed={1} glowIntensity={1.2} glowSpread={0.7} hotspot={0.78} brightness={1.2} opacity={0.85} pulseSpeed={0} noiseStrength={0} idleFade idleTimeout={400} fadeDuration={240} blendMode="screen" /></div> : null;
 }

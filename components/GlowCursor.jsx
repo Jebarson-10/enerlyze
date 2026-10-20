@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Mesh, Program, Renderer, Triangle } from 'ogl';
 import './GlowCursor.css';
 
-const MAX_POINTS = 40;
+const MAX_POINTS = 24;
 
 const VERTEX_SHADER = `
 attribute vec2 position;
@@ -18,7 +18,7 @@ void main() {
 const FRAGMENT_SHADER = `
 precision highp float;
 
-#define MAX_POINTS 40
+#define MAX_POINTS 24
 
 uniform vec2 uResolution;
 uniform vec2 uPoints[MAX_POINTS];
@@ -131,6 +131,7 @@ const GlowCursor = ({
   trailWidth = 8,
   trailTaper = 0.8,
   followSpeed = 0.16,
+  trailSegmentLength = 7,
   glowIntensity = 1.9,
   glowSpread = 1.2,
   hotspot = 0.65,
@@ -163,6 +164,7 @@ const GlowCursor = ({
     trailWidth,
     trailTaper,
     followSpeed,
+    trailSegmentLength,
     glowIntensity,
     glowSpread,
     hotspot,
@@ -300,7 +302,7 @@ const GlowCursor = ({
         const headEase = config.followSpeed >= 1
           ? 1
           : 1 - Math.pow(1 - clamp(config.followSpeed, 0.01, 0.99), delta);
-        const chainBase = clamp(0.28 + config.followSpeed * 0.35, 0.08, 0.92);
+        const chainBase = clamp(0.5 + config.followSpeed * 0.22, 0.08, 0.95);
         const chainEase = 1 - Math.pow(1 - chainBase, delta);
         head.x += (target.x - head.x) * headEase;
         head.y += (target.y - head.y) * headEase;
@@ -310,6 +312,14 @@ const GlowCursor = ({
         for (let i = 1; i < MAX_POINTS; i++) {
           points[i].x += (points[i - 1].x - points[i].x) * chainEase;
           points[i].y += (points[i - 1].y - points[i].y) * chainEase;
+          const dx = points[i - 1].x - points[i].x;
+          const dy = points[i - 1].y - points[i].y;
+          const distance = Math.hypot(dx, dy);
+          const maxSegment = Math.max(config.trailSegmentLength, 1);
+          if (distance > maxSegment) {
+            points[i].x = points[i - 1].x - (dx / distance) * maxSegment;
+            points[i].y = points[i - 1].y - (dy / distance) * maxSegment;
+          }
         }
 
         for (let i = 0; i < MAX_POINTS; i++) {

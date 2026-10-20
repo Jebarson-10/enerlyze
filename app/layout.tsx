@@ -8,12 +8,13 @@ import StartupIntro from './startup-intro';
 import SoundControl from './sound-control';
 import './motion.css';
 import './premium.css';
+import './material-refresh.css';
 import SiteEffects from './site-effects';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.enerlyze.in'),
-  title: { default: 'Enerlyze | Energy Intelligence for Homes and Businesses', template: '%s | Enerlyze' },
-  description: 'Enerlyze is an energy analytics company in Kerala, India. Explore Enerlyzer for home electricity and carbon insights, or discover equipment-level energy analysis and ESG reporting for businesses.',
+  title: { default: 'Enerlyze | Energy Analytics, Carbon Insights & Enerlyzer', template: '%s | Enerlyze' },
+  description: 'Enerlyze helps Indian homes and businesses understand electricity use and carbon impact. Try Enerlyzer for bill and appliance estimates, or explore equipment-level energy analytics and ESG reporting support.',
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
   verification: { google: 'VI7rdSZ5aYnM0ZYLBknrTijCpQttlT_dM8mcKxHA6Tg' },
@@ -37,6 +38,8 @@ const structuredData = {
       description: 'Energy analytics, carbon insights, and practical efficiency support for homes and businesses in India.',
       email: 'enerlyze@gmail.com',
       telephone: '+91 70068 14925',
+      contactPoint: { '@type': 'ContactPoint', contactType: 'business enquiries', email: 'enerlyze@gmail.com', telephone: '+91 70068 14925', availableLanguage: 'English' },
+      areaServed: { '@type': 'Country', name: 'India' },
       address: { '@type': 'PostalAddress', addressLocality: 'Thiruvananthapuram', addressRegion: 'Kerala', addressCountry: 'IN' },
     },
     {
