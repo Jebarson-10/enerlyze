@@ -16,6 +16,7 @@ export const metadata: Metadata = {
   description: 'Enerlyze is an energy analytics company in Kerala, India. Explore Enerlyzer for home electricity and carbon insights, or discover equipment-level energy analysis and ESG reporting for businesses.',
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
+  verification: { google: 'VI7rdSZ5aYnM0ZYLBknrTijCpQttlT_dM8mcKxHA6Tg' },
   openGraph: { type: 'website', siteName: 'Enerlyze', locale: 'en_IN', title: 'Enerlyze | Your personal partner for a greener lifestyle', description: 'Understand energy use. Find practical savings. Make greener choices for your home or business.', url: '/', images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Enerlyze energy intelligence' }] },
   twitter: { card: 'summary_large_image', title: 'Enerlyze | Energy Intelligence', description: 'Your personal partner for a greener lifestyle.', images: ['/og-image.png'] },
   icons: {
