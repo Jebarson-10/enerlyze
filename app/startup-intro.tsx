@@ -93,7 +93,7 @@ export default function StartupIntro(){
  const [visible,setVisible]=useState(false),[currentPhase,setCurrentPhase]=useState(0),[run,setRun]=useState(0);
  const skip=useRef<HTMLButtonElement>(null);
  const complete=()=>{try{sessionStorage.setItem('enerlyze-intro-v4','seen')}catch{}setVisible(false)};
- useEffect(()=>{try{if(sessionStorage.getItem('enerlyze-intro-v4'))return}catch{}if(!matchMedia('(prefers-reduced-motion: reduce)').matches)setVisible(true)},[]);
+ useEffect(()=>{if(location.pathname.startsWith('/admin'))return;try{if(sessionStorage.getItem('enerlyze-intro-v4'))return}catch{}if(!matchMedia('(prefers-reduced-motion: reduce)').matches)setVisible(true)},[]);
  useEffect(()=>{const replay=()=>{setRun(value=>value+1);setCurrentPhase(0);setVisible(true)};window.addEventListener('enerlyze-replay-intro',replay);return()=>window.removeEventListener('enerlyze-replay-intro',replay)},[]);
  useEffect(()=>{
   if(!visible)return;

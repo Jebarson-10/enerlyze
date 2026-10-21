@@ -1,29 +1,31 @@
 'use client';
 
 import { ArrowUpRight, Leaf, ScanLine, Sun } from 'lucide-react';
+import {contentValue,type PublicContent} from '@/lib/content-fields';
 
-export default function CompanyOverview() {
+export default function CompanyOverview({content}:{content:PublicContent}) {
+  const c=(key:string)=>contentValue(content,key);
   return <>
     <section className="purpose-section" aria-labelledby="purpose-title">
-      <h2 id="purpose-title">Less wasted.<br/><span>More possible.</span></h2>
-      <div className="purpose-body"><p>Energy is only the beginning. We connect what you consume, what it costs, and what it means for the planet.</p><p>Enerlyze is an energy analytics company based in Thiruvananthapuram, Kerala. Enerlyzer helps households estimate electricity use and carbon impact from their bill and appliances. For businesses, we examine equipment-level consumption and help turn findings into efficiency priorities and ESG reporting evidence.</p></div>
+      <h2 id="purpose-title">{c('home.purpose.title1')}<br/><span>{c('home.purpose.title2')}</span></h2>
+      <div className="purpose-body"><p>{c('home.purpose.intro')}</p><p>{c('home.purpose.body')}</p></div>
     </section>
     <section className="pathways" aria-label="Explore Enerlyze services">
       <article className="pathway pathway-home">
-        <div className="pathway-image"><img src="/home-energy.webp" alt="Illustrative solar-powered home surrounded by tropical greenery" loading="lazy" width="1536" height="1024"/></div>
-        <div className="pathway-copy"><span className="pathway-label">For your home</span><h2>Small changes.<br/>Everyday impact.</h2><p>Understand your electricity bill, explore appliance consumption, and see where efficient products or solar could make a difference.</p><a className="action-link" href="/calculator">Open Enerlyzer <ArrowUpRight size={20}/></a></div>
+        <div className="pathway-image"><img src={c('home.home.image')} alt="Solar-powered home and greener lifestyle" loading="lazy" width="1536" height="1024"/></div>
+        <div className="pathway-copy"><span className="pathway-label">For your home</span><h2>{c('home.home.title')}</h2><p>{c('home.home.body')}</p><a className="action-link" href="/calculator">Open Enerlyzer <ArrowUpRight size={20}/></a></div>
       </article>
       <article className="pathway pathway-business">
-        <div className="pathway-image"><img src="/industry.png" alt="Illustrative manufacturing facility with rooftop solar" loading="lazy" width="1536" height="1024"/></div>
-        <div className="pathway-copy"><span className="pathway-label">For your business</span><h2>Better operations.<br/>Lighter footprint.</h2><p>Find energy losses at equipment level. Turn consumption and carbon insights into an efficiency plan and evidence for ESG reporting.</p><a className="action-link" href="/business">Explore business analytics <ArrowUpRight size={20}/></a></div>
+        <div className="pathway-image"><img src={c('home.business.image')} alt="Manufacturing facility with cleaner energy" loading="lazy" width="1536" height="1024"/></div>
+        <div className="pathway-copy"><span className="pathway-label">For your business</span><h2>{c('home.business.title')}</h2><p>{c('home.business.body')}</p><a className="action-link" href="/business">Explore business analytics <ArrowUpRight size={20}/></a></div>
       </article>
     </section>
     <section className="approach-section" aria-labelledby="approach-title">
-      <div className="approach-heading"><h2 id="approach-title">Clarity that leads<br/>to change.</h2><p>A practical path from understanding your energy to using it better.</p></div>
+      <div className="approach-heading"><h2 id="approach-title">{c('home.approach.title')}</h2><p>{c('home.approach.body')}</p></div>
       <div className="approach-list">
-        <details open><summary><ScanLine aria-hidden="true"/><h3>Understand your impact</h3><span aria-hidden="true">+</span></summary><p>Map electrical consumption and identify carbon-heavy equipment, processes, and avoidable losses. Build a clearer picture of where your energy goes.</p></details>
-        <details><summary><Sun aria-hidden="true"/><h3>Find a better option</h3><span aria-hidden="true">+</span></summary><p>Explore operational improvements, efficient equipment, and renewable solutions. Compare potential savings and payback before making an investment.</p></details>
-        <details><summary><Leaf aria-hidden="true"/><h3>Turn insight into progress</h3><span aria-hidden="true">+</span></summary><p>Bring energy and emissions evidence into carbon and ESG reporting. Our future pipeline adds IoT monitoring and connected green solutions.</p></details>
+        <details open><summary><ScanLine aria-hidden="true"/><h3>{c('home.approach.1.title')}</h3><span aria-hidden="true">+</span></summary><p>{c('home.approach.1.body')}</p></details>
+        <details><summary><Sun aria-hidden="true"/><h3>{c('home.approach.2.title')}</h3><span aria-hidden="true">+</span></summary><p>{c('home.approach.2.body')}</p></details>
+        <details><summary><Leaf aria-hidden="true"/><h3>{c('home.approach.3.title')}</h3><span aria-hidden="true">+</span></summary><p>{c('home.approach.3.body')}</p></details>
       </div>
     </section>
   </>;

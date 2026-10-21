@@ -11,6 +11,8 @@ import './premium.css';
 import './material-refresh.css';
 import './theme.css';
 import SiteEffects from './site-effects';
+import {getPublishedState} from '@/lib/published';
+import {contentValue} from '@/lib/content-fields';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.enerlyze.in'),
@@ -54,15 +56,19 @@ const structuredData = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const {content}=await getPublishedState();
+  const email=contentValue(content,'home.contact.email'),telephone=contentValue(content,'home.contact.phone');
+  const organization={...structuredData['@graph'][0],email,telephone,contactPoint:{'@type':'ContactPoint',contactType:'business enquiries',email,telephone,availableLanguage:'English'}};
+  const liveStructuredData={...structuredData,'@graph':[organization,structuredData['@graph'][1]]};
   return (
     <html lang="en" suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{__html:"try{document.documentElement.dataset.theme=localStorage.getItem('enerlyze-theme')==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}"}}/></head>
-      <body className="antialiased"><script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(structuredData)}}/><div id="site-content">{children}<SiteEffects/></div><SoundControl/><StartupIntro/></body>
+      <body className="antialiased"><script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(liveStructuredData).replace(/</g,'\\u003c')}}/><div id="site-content">{children}<SiteEffects/></div><SoundControl/><StartupIntro/></body>
     </html>
   );
 }

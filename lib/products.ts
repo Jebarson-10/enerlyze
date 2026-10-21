@@ -1,5 +1,5 @@
 export type ProductCategory='Fans'|'Cooling'|'Lighting'|'Solar'|'Wind';
-export type Product={id:string;name:string;category:ProductCategory;description:string;price:number;watts?:number;replaces?:string;capacityKw?:number;affiliate:boolean;sample:boolean;buyUrl?:string;spec:string;};
+export type Product={id:string;name:string;category:ProductCategory;description:string;price:number;watts?:number;replaces?:string;capacityKw?:number;affiliate:boolean;sample:boolean;buyUrl?:string;imageUrl?:string;spec:string;};
 
 // Replace these explicit examples with approved partner specifications and URLs.
 // Affiliate priority describes catalog eligibility; samples are not real partnerships.

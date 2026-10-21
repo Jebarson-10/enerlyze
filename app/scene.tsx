@@ -1,6 +1,6 @@
 "use client";
 import {useEffect, useRef, useState, type MutableRefObject} from 'react';
-import type {Mode} from './page';
+import type {Mode} from './home-client';
 import type * as Three from 'three';
 
 const letters: Record<string,string[]> = {
