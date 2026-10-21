@@ -4,7 +4,6 @@ import "./revamp.css";
 import "./blue.css";
 import "./carbon.css";
 import "./intro.css";
-import StartupIntro from './startup-intro';
 import SoundControl from './sound-control';
 import './motion.css';
 import './premium.css';
@@ -13,11 +12,13 @@ import './theme.css';
 import SiteEffects from './site-effects';
 import {getPublishedState} from '@/lib/published';
 import {contentValue} from '@/lib/content-fields';
+import {jsonLd} from '@/lib/seo';
+import './info.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.enerlyze.in'),
-  title: { default: 'Enerlyze | Energy Analytics, Carbon Insights & Enerlyzer', template: '%s | Enerlyze' },
-  description: 'Enerlyze helps Indian homes and businesses understand electricity use and carbon impact. Try Enerlyzer for bill and appliance estimates, or explore equipment-level energy analytics and ESG reporting support.',
+  title: { default: 'Enerlyze India | Energy Analysis & Carbon Footprint Calculator', template: '%s | Enerlyze' },
+  description: 'Analyse electricity consumption, estimate associated carbon emissions and discover energy-saving opportunities with Enerlyze, an energy intelligence company in Kerala, India.',
   alternates: { canonical: '/' },
   robots: { index: true, follow: true },
   verification: { google: 'VI7rdSZ5aYnM0ZYLBknrTijCpQttlT_dM8mcKxHA6Tg' },
@@ -35,10 +36,12 @@ const structuredData = {
     {
       '@type': 'Organization',
       '@id': 'https://www.enerlyze.in/#organization',
-      name: 'Enerlyze',
+      name: 'Enerlyze Private Limited',
+      alternateName: 'Enerlyze',
       url: 'https://www.enerlyze.in/',
       logo: 'https://www.enerlyze.in/favicon.svg',
-      description: 'Energy analytics, carbon insights, and practical efficiency support for homes and businesses in India.',
+      sameAs: ['https://startups.startupmission.in/startups/pzvOl'],
+      description: 'Energy intelligence and electricity-consumption analysis for homes and businesses in India.',
       email: 'enerlyze@gmail.com',
       telephone: '+91 70068 14925',
       contactPoint: { '@type': 'ContactPoint', contactType: 'business enquiries', email: 'enerlyze@gmail.com', telephone: '+91 70068 14925', availableLanguage: 'English' },
@@ -68,7 +71,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{__html:"try{document.documentElement.dataset.theme=localStorage.getItem('enerlyze-theme')==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}"}}/></head>
-      <body className="antialiased"><script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(liveStructuredData).replace(/</g,'\\u003c')}}/><div id="site-content">{children}<SiteEffects/></div><SoundControl/><StartupIntro/></body>
+      <body className="antialiased"><script type="application/ld+json" dangerouslySetInnerHTML={{__html: jsonLd(liveStructuredData)}}/><div id="site-content">{children}<SiteEffects/></div><SoundControl/></body>
     </html>
   );
 }

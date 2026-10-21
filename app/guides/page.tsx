@@ -1,0 +1,8 @@
+import type {Metadata} from 'next';
+import {guides} from '@/lib/guides';
+import {canonical,pageMetadata,breadcrumbData} from '@/lib/seo';
+import InfoShell from '../info-shell';
+import SeoJsonLd from '../seo-json-ld';
+
+export const metadata:Metadata=pageMetadata({title:'Energy and Carbon Guides for India | Enerlyze',description:'Practical guides to electricity bills, appliance use, Kerala tariffs, rooftop solar and emissions accounting from Enerlyze.',path:'/guides'});
+export default function GuidesPage(){return <InfoShell active="guides"><SeoJsonLd data={[breadcrumbData([{name:'Home',path:'/'},{name:'Guides',path:'/guides'}]),{'@context':'https://schema.org','@type':'CollectionPage',name:'Enerlyze energy guides',url:canonical('/guides'),publisher:{'@id':canonical('/#organization')}}]}/><div className="info-hero"><span className="pathway-label">THE KNOWLEDGE LIBRARY</span><h1>Make better energy decisions.</h1><p>Plain-language guides for understanding a bill, estimating electricity-related CO₂, and testing practical savings ideas. Every estimate has a boundary; every useful decision starts with the right inputs.</p></div><div className="guide-grid">{guides.map((guide,index)=><article className="guide-card" key={guide.slug}><span className="guide-number">{String(index+1).padStart(2,'0')} / GUIDE</span><h2><a href={`/guides/${guide.slug}`}>{guide.title}</a></h2><p>{guide.summary}</p><a className="info-arrow" href={`/guides/${guide.slug}`}>Read guide ↗</a></article>)}</div><div className="info-cta"><h2>Ready to examine your own usage?</h2><p>Enerlyzer connects a bill amount, appliance estimates and a transparent carbon calculation.</p><a className="buy-button" href="/calculator">Open Enerlyzer ↗</a></div></InfoShell>}

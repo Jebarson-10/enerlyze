@@ -37,7 +37,7 @@ export async function POST(request:Request){
   const field=contentFieldMap.get(key),value=input?.value;
   if(!field||!text(value,field.type==='multiline'?5000:500))return fail('Invalid content field');
   if(field.type==='image'){
-   const id=mediaId(value as string);if(!id&&!['/home-energy.webp','/industry.png'].includes(value as string))return fail('Upload an image first');
+   const id=mediaId(value as string);if(!id&&!['/home-energy.webp','/industry.png','/industry.webp'].includes(value as string))return fail('Upload an image first');
    if(id&&!await mediaExists(id))return fail('Image is unavailable');
   }
   if(key==='home.contact.email'&&!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value as string))return fail('Invalid email');

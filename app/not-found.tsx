@@ -1,0 +1,2 @@
+import InfoShell from './info-shell';
+export default function NotFound(){return <InfoShell><div className="info-hero"><span className="pathway-label">PAGE NOT FOUND</span><h1>That path has no reading.</h1><p>The page may have moved. Start with our energy guides or return home.</p><div className="info-actions"><a className="buy-button" href="/">Go home ↗</a><a className="info-arrow" href="/guides">Browse guides ↗</a></div></div></InfoShell>}

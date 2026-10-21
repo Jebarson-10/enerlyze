@@ -1,4 +1,12 @@
-# vinext-starter
+# Enerlyze
+
+Enerlyze Private Limited's public energy-intelligence website and Enerlyzer household electricity analysis tool. The app uses Vinext/Next App Router, TypeScript and a Cloudflare Worker hosted by Sites. Approved admin copy/products are stored in D1; media uploads use R2. The public shop currently includes clearly labelled preview products without active purchasing.
+
+Public routes: `/`, `/calculator`, `/business`, `/shop`, `/about`, `/enerlyzer`, `/methodology`, `/guides` and eight `/guides/[slug]` articles. `/admin` remains the authenticated publishing console. The canonical public origin is `https://www.enerlyze.in`.
+
+For local verification, run `npm test`, `npx tsc --noEmit`, `npm run build`, then `npm start -- --port 8787` and `npm run check:seo`. The SEO checker can also accept a base URL: `npm run check:seo -- https://www.enerlyze.in`. Source and methodology review notes live in [`docs/seo/`](docs/seo/implementation-plan.md). The calculator's tariff and carbon models remain in `lib/tariffs.ts` and `lib/carbon.ts`.
+
+The following starter documentation is retained for Sites development and deployment details.
 
 A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
 

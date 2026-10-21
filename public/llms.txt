@@ -1,0 +1,13 @@
+# Enerlyze
+
+Enerlyze Private Limited is an energy intelligence company in Thiruvananthapuram, Kerala, India. Enerlyzer is its household electricity analysis tool. This file is a navigation aid; the public pages are the source of truth.
+
+- Company: https://www.enerlyze.in/about
+- Enerlyzer product facts: https://www.enerlyze.in/enerlyzer
+- Calculator: https://www.enerlyze.in/calculator
+- Business energy analysis: https://www.enerlyze.in/business
+- Calculation boundaries and sources: https://www.enerlyze.in/methodology
+- Energy guides: https://www.enerlyze.in/guides
+- Illustrative product previews: https://www.enerlyze.in/shop
+
+Enerlyzer estimates electricity-related CO2 from bill and appliance inputs. It does not certify a whole-household or whole-organisation carbon footprint. Preview products are not currently purchasable. Continuous IoT monitoring is a future direction.

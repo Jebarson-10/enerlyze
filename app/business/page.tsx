@@ -2,19 +2,10 @@ import type { Metadata } from 'next';
 import SiteHeader from '../site-header';
 import {getPublishedState} from '@/lib/published';
 import {contentValue} from '@/lib/content-fields';
+import {pageMetadata,breadcrumbData} from '@/lib/seo';
+import SeoJsonLd from '../seo-json-ld';
 
-const baseMetadata: Metadata = {
-  title: 'Business Energy Analytics, Carbon & ESG Reporting',
-  description: 'Enerlyze helps manufacturers and other organizations map equipment-level electricity use, identify avoidable losses, estimate associated emissions and organize evidence for ESG reporting.',
-  alternates: { canonical: '/business' },
-  openGraph: {
-    title: 'Business Energy Analytics and ESG Support | Enerlyze',
-    description: 'Measure equipment-level energy use, identify waste and turn carbon insights into practical efficiency priorities.',
-    url: '/business',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Enerlyze energy intelligence' }],
-  },
-};
-export async function generateMetadata():Promise<Metadata>{const {content}=await getPublishedState();return {...baseMetadata,title:contentValue(content,'seo.business.title'),description:contentValue(content,'seo.business.description')}}
+export async function generateMetadata():Promise<Metadata>{const {content}=await getPublishedState();return pageMetadata({title:contentValue(content,'seo.business.title'),description:contentValue(content,'seo.business.description'),path:'/business'})}
 
 const services=['01','02','03','04'];
 const answers=[1,2,3];
@@ -34,7 +25,7 @@ const serviceData = {
 export const dynamic='force-dynamic';
 export default async function BusinessPage() {const {content}=await getPublishedState();const c=(key:string)=>contentValue(content,key);
   return <div className="site business-page">
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceData) }} />
+    <SeoJsonLd data={[serviceData,breadcrumbData([{name:'Home',path:'/'},{name:'Business energy analysis',path:'/business'}])]}/>
     <SiteHeader active="business" />
     <main>
       <section className="business-hero">
@@ -57,6 +48,6 @@ export default async function BusinessPage() {const {content}=await getPublished
       </section>
       <section className="business-cta"><h2>{c('business.cta.title')}</h2><p>{c('business.cta.body')}</p><a href={`mailto:${c('home.contact.email')}?subject=Business%20energy%20analysis%20enquiry`}>Contact Enerlyze ↗</a></section>
     </main>
-    <footer className="tool-footer"><a href="/">Enerlyze</a><a href="/calculator">Explore Enerlyzer →</a></footer>
+    <footer className="tool-footer"><a href="/">Enerlyze</a><a href="/guides/energy-audit-vs-energy-monitoring">Audit vs monitoring</a><a href="/guides/scope-1-scope-2-scope-3-emissions">Emissions scopes</a><a href="/methodology">Methodology</a><a href="/calculator">Explore Enerlyzer →</a></footer>
   </div>;
 }
