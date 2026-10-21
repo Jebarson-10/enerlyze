@@ -1,6 +1,10 @@
 import {createSession,db,derivePassword,fail,jsonBody,ownerMayBootstrap,passwordPolicy,sameOrigin,validUsername} from '@/lib/admin-auth';
 export const dynamic='force-dynamic';
-export async function GET(){
+export async function GET(request:Request){
+ if(new URL(request.url).searchParams.has('probe')&&await ownerMayBootstrap()){
+  try{await derivePassword('TemporaryProbe2026!');return Response.json({passwordHashing:'ok'},{headers:{'Cache-Control':'no-store'}})}
+  catch(error){return Response.json({passwordHashing:'failed',reason:error instanceof Error?error.message:String(error)},{headers:{'Cache-Control':'no-store'}})}
+ }
  try{const row=await db().prepare('SELECT COUNT(*) AS count FROM admin_users').first<{count:number}>();return Response.json({setupRequired:!row?.count,ownerVerified:await ownerMayBootstrap()},{headers:{'Cache-Control':'no-store'}})}
  catch{return fail('Admin storage is not ready',503)}
 }
@@ -15,5 +19,5 @@ export async function POST(request:Request){
   const result=await db().prepare("INSERT INTO admin_users (id,username,password_hash,salt,role,active,failed_attempts,locked_until,created_at,updated_at) SELECT ?,?,?,?,'super_admin',1,0,0,?,? WHERE NOT EXISTS (SELECT 1 FROM admin_users)").bind(id,username,derived.hash,derived.salt,now,now).run();
   if(!result.meta.changes)return fail('The super-admin account has already been created',409);
   return Response.json({ok:true,username,role:'super_admin'},{headers:{'Set-Cookie':await createSession(id),'Cache-Control':'no-store'}});
- }catch{return fail('Could not create the super-admin account',503)}
+ }catch(error){console.error('Admin bootstrap failed',error);return fail('Could not create the super-admin account',503)}
 }
