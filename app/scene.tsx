@@ -2,6 +2,7 @@
 import {useEffect, useRef, useState, type MutableRefObject} from 'react';
 import type {Mode} from './home-client';
 import type * as Three from 'three';
+import {orbitSprites} from './pixel-orbit-art';
 
 const letters: Record<string,string[]> = {
  E:['11111','10000','10000','11110','10000','10000','11111'],
@@ -86,6 +87,46 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
    sphere.visible=mode==='choose';scene.add(sphere);
    const targets=new Float32Array(base.length);
    for(let i=0;i<base.length/3;i++)targets.set(word[i%word.length],i*3);
+   let fragments:Three.Points<Three.BufferGeometry,Three.PointsMaterial>|null=null;
+   const fragmentSources:{icon:number;local:number;x:number;y:number}[]=[];
+   let fragmentTargets=new Float32Array(0);
+   let fragmentColorSources=new Float32Array(0);
+   let fragmentColorTargets=new Float32Array(0);
+   let occluder:Three.Mesh|null=null;
+   if(mode==='choose'){
+    const pixelCanvas=document.createElement('canvas');pixelCanvas.width=16;pixelCanvas.height=16;
+    const pixelContext=pixelCanvas.getContext('2d')!;
+    pixelContext.fillStyle='#fff';pixelContext.fillRect(1,1,14,14);
+    const pixelTexture=new T.CanvasTexture(pixelCanvas);
+    pixelTexture.magFilter=T.NearestFilter;pixelTexture.minFilter=T.NearestFilter;
+    textures.push(pixelTexture);
+    const colorValues:number[]=[],textColors:number[]=[];
+    const wordPalette=[0x90f5ff,0xffdf85,0xffaa9b,0xffa3c0,0x93f3dc,0xb5c4ff];
+    orbitSprites.forEach((sprite,icon)=>sprite.forEach((pixel,local)=>{
+     fragmentSources.push({icon,local,x:pixel.x,y:pixel.y});
+     const color=new T.Color(pixel.color);
+     colorValues.push(color.r,color.g,color.b);
+     const textColor=new T.Color(wordPalette[icon]);
+     textColors.push(textColor.r,textColor.g,textColor.b);
+    }));
+    const fragmentGeometry=new T.BufferGeometry();
+    fragmentGeometry.setAttribute('position',new T.BufferAttribute(new Float32Array(fragmentSources.length*3),3));
+    fragmentGeometry.setAttribute('color',new T.Float32BufferAttribute(colorValues,3));
+    fragmentTargets=new Float32Array(fragmentSources.length*3);
+    fragmentColorSources=new Float32Array(colorValues);
+    fragmentColorTargets=new Float32Array(textColors);
+    for(let i=0;i<fragmentSources.length;i++){
+     const {icon,local}=fragmentSources[i];
+     const start=Math.floor(icon*word.length/orbitSprites.length);
+     const end=Math.floor((icon+1)*word.length/orbitSprites.length);
+     fragmentTargets.set(word[start+local%(end-start)],i*3);
+    }
+    const fragmentMaterial=new T.PointsMaterial({size:.075,map:pixelTexture,vertexColors:true,alphaTest:.4,transparent:true,opacity:.98,sizeAttenuation:true,depthWrite:false,toneMapped:false});
+    fragments=new T.Points(fragmentGeometry,fragmentMaterial);
+    fragments.renderOrder=2;scene.add(fragments);
+    occluder=new T.Mesh(new T.SphereGeometry(1.4,40,32),new T.MeshBasicMaterial({colorWrite:false,depthWrite:true}));
+    occluder.renderOrder=-1;scene.add(occluder);
+   }
    const globe=pointSphere(650,.86,0xa5ff38,.038);
    globe.visible=mode!=='choose';root.add(globe);
    const inner=new T.Mesh(new T.SphereGeometry(.8,40,32),new T.MeshStandardMaterial({color:0x142c21,metalness:.65,roughness:.32}));
@@ -199,6 +240,29 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
      sphere.geometry.attributes.position.needsUpdate=true;
      sphere.rotation.set(py*.12*(1-reveal),px*.16*(1-reveal),0);
      sphere.material.size=.13+reveal*.13;
+     sphere.material.opacity=.93-reveal*.58;
+     if(fragments){
+      if(occluder)occluder.visible=reveal<.38;
+      const iconPositions=fragments.geometry.attributes.position.array as Float32Array;
+      const iconColors=fragments.geometry.attributes.color.array as Float32Array;
+      for(let i=0;i<fragmentSources.length;i++){
+       const pixel=fragmentSources[i];
+       const angle=elapsed*.28+pixel.icon*Math.PI*2/orbitSprites.length;
+       const orbitX=Math.cos(angle)*1.75;
+       const orbitY=Math.sin(angle+pixel.icon*.6)*.32;
+       const orbitZ=Math.sin(angle)*1.75;
+       const j=i*3,scatter=Math.sin(reveal*Math.PI)*.07;
+       iconPositions[j]=lerp(orbitX+pixel.x,fragmentTargets[j],reveal)+Math.sin(i*.43)*scatter;
+       iconPositions[j+1]=lerp(orbitY+pixel.y,fragmentTargets[j+1],reveal)+Math.cos(i*.71)*scatter;
+       iconPositions[j+2]=lerp(orbitZ,0.08, reveal);
+       iconColors[j]=lerp(fragmentColorSources[j],fragmentColorTargets[j],reveal);
+       iconColors[j+1]=lerp(fragmentColorSources[j+1],fragmentColorTargets[j+1],reveal);
+       iconColors[j+2]=lerp(fragmentColorSources[j+2],fragmentColorTargets[j+2],reveal);
+      }
+      fragments.geometry.attributes.position.needsUpdate=true;
+      fragments.geometry.attributes.color.needsUpdate=true;
+      fragments.material.size=.075+reveal*.115;
+     }
     } else {
      root.rotation.y=Math.sin(elapsed*.12)*.07+px*.12+p*.24;
      root.rotation.x=py*.055;
@@ -213,8 +277,8 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
     }
     // Fit the complete scene to its own panel; never move a model into the text column.
     const halfFov=Math.tan(38*Math.PI/360);
-    const fitWidth=mode==='choose'?lerp(3.6,6.45,reveal):5.95;
-    const fitHeight=mode==='choose'?3.6:5.3;
+    const fitWidth=mode==='choose'?lerp(4.25,6.45,reveal):5.95;
+    const fitHeight=mode==='choose'?4.1:5.3;
     const distance=Math.max(fitWidth/(2*halfFov*aspect),fitHeight/(2*halfFov))*1.04;
     camera.position.set(0,0,distance);camera.lookAt(0,0,0);
     renderer.render(scene,camera);
@@ -232,7 +296,7 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
   }).catch(()=>setError(true));
   return ()=>{disposed=true;cleanup()};
  },[mode,progress]);
- return <div className="immersive-canvas" ref={host} role="img" aria-label={mode==='choose'?'Bold spherical point cloud that transforms into the word Enerlyze':mode==='home'?'Connected sustainability ecosystem with solar panels, wind power and a green leaf around a dotted globe':'Efficient industrial drive connected to solar, wind and lower-impact choices'}>
+ return <div className="immersive-canvas" ref={host} role="img" aria-label={mode==='choose'?'White point-cloud sphere surrounded by pixel-art energy objects that turn into a colorful Enerlyze wordmark on hover':mode==='home'?'Connected sustainability ecosystem with solar panels, wind power and a green leaf around a dotted globe':'Efficient industrial drive connected to solar, wind and lower-impact choices'}>
   {error&&<div className="webgl-fallback"><strong>Connected for a greener future.</strong><p>The 3D view is unavailable on this device. All content and tools remain available.</p></div>}
  </div>;
 }
