@@ -1,3 +1,4 @@
+import {serviceOffers} from './service-offers';
 export type ContentField={key:string;label:string;section:string;type:'text'|'multiline'|'image';defaultValue:string};
 
 // These are the public fields the console can publish without a code deployment.
@@ -6,6 +7,8 @@ export const contentFields:ContentField[]=[
  {key:'seo.home.description',label:'Homepage search description',section:'Search',type:'multiline',defaultValue:'Analyse electricity consumption, estimate associated carbon emissions and discover energy-saving opportunities with Enerlyze, an energy intelligence company in Kerala, India.'},
  {key:'seo.business.title',label:'Business search title',section:'Search',type:'text',defaultValue:'Business Energy Analysis & Carbon Insights India | Enerlyze'},
  {key:'seo.business.description',label:'Business search description',section:'Search',type:'multiline',defaultValue:'Explore equipment-level electricity analysis, efficiency opportunities and emissions-related decision support for business operations with Enerlyze India.'},
+ {key:'seo.services.title',label:'Services search title',section:'Search',type:'text',defaultValue:'Carbon Footprint, Energy & ESG Services in India | Enerlyze'},
+ {key:'seo.services.description',label:'Services search description',section:'Search',type:'multiline',defaultValue:'Explore corporate carbon footprint assessments, facility energy analysis, ESG and BRSR data preparation, Scope 3 readiness and decarbonization planning with Enerlyze.'},
  {key:'seo.calculator.title',label:'Enerlyzer search title',section:'Search',type:'text',defaultValue:'Electricity Bill & Carbon Footprint Calculator India | Enerlyzer'},
  {key:'seo.calculator.description',label:'Enerlyzer search description',section:'Search',type:'multiline',defaultValue:'Estimate electricity use from your bill, explore appliance consumption and calculate electricity-related CO₂. Includes Kerala and Tamil Nadu domestic tariff models.'},
  {key:'seo.shop.title',label:'Shop search title',section:'Search',type:'text',defaultValue:'Energy-Efficient Product Concepts & Savings | Enerlyze'},
@@ -58,6 +61,15 @@ export const contentFields:ContentField[]=[
  {key:'business.faq.3.answer',label:'FAQ 3 answer',section:'Business',type:'multiline',defaultValue:'Equipment-level analysis can be adapted to manufacturing, textiles, hospitals, chemical operations and food production. The measurements and opportunities depend on the process, equipment and data available at each site.'},
  {key:'business.cta.title',label:'Business call to action',section:'Business',type:'text',defaultValue:'Start with what your operation already knows.'},
  {key:'business.cta.body',label:'Business call to action description',section:'Business',type:'multiline',defaultValue:'Bring your bills, equipment inventory or operational questions. We can help define the next useful measurement and reporting step.'},
+ {key:'services.hero.title',label:'Services headline',section:'Services',type:'text',defaultValue:'Know your footprint. Change what matters.'},
+ {key:'services.hero.body',label:'Services introduction',section:'Services',type:'multiline',defaultValue:'From a first carbon baseline to better equipment decisions and reporting evidence, Enerlyze helps businesses turn energy and emissions data into a practical plan.'},
+ ...serviceOffers.flatMap((offer):ContentField[]=>[
+  {key:`services.${offer.id}.title`,label:`${offer.number} service title`,section:'Services',type:'text',defaultValue:offer.title},
+  {key:`services.${offer.id}.body`,label:`${offer.number} service description`,section:'Services',type:'multiline',defaultValue:offer.body},
+  ...offer.deliverables.map((item,index):ContentField=>({key:`services.${offer.id}.deliverable.${index+1}`,label:`${offer.number} deliverable ${index+1}`,section:'Services',type:'text',defaultValue:item})),
+ ]),
+ {key:'services.cta.title',label:'Services enquiry heading',section:'Services',type:'text',defaultValue:'Start with a clear scope.'},
+ {key:'services.cta.body',label:'Services enquiry description',section:'Services',type:'multiline',defaultValue:'Tell us your sector, site or product, available bills and data, and the decision or disclosure you need to support. We will outline the scope, inputs, deliverables and a proposal.'},
  {key:'calculator.hero.title',label:'Enerlyzer headline',section:'Enerlyzer',type:'text',defaultValue:'Meet Enerlyzer.'},
  {key:'calculator.hero.body',label:'Enerlyzer introduction',section:'Enerlyzer',type:'multiline',defaultValue:'Enter the amount on your electricity bill, choose your state and billing period, and Enerlyzer estimates your energy use. Add appliances to see where electricity goes, understand the associated carbon footprint, and compare practical ways to save.'},
  {key:'shop.hero.title',label:'Shop headline',section:'Shop',type:'text',defaultValue:'Choose a better way to use energy.'},

@@ -1,0 +1,37 @@
+.services-hero{margin-bottom:clamp(55px,8vw,110px)}
+.services-hero h1{max-width:12ch}
+.services-hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:24px}
+.services-text-link{color:var(--foreground);font-weight:700}
+.services-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border-block:1px solid var(--border);margin-bottom:clamp(75px,10vw,130px)}
+.services-overview span{padding:21px 12px 21px 0;font-size:clamp(.85rem,1.3vw,1rem);font-weight:650}
+.services-overview span+span{border-left:1px solid var(--border);padding-left:22px}
+.services-overview b{color:var(--primary);font-size:.78rem;margin-right:12px}
+.services-section-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.62fr);column-gap:50px;align-items:end;margin-bottom:36px}
+.services-section-heading .pathway-label{grid-column:1/-1}
+.services-section-heading h2{font-size:clamp(2.4rem,5vw,5.5rem);line-height:1;letter-spacing:-.065em;margin:18px 0 0;max-width:12ch}
+.services-section-heading p{color:var(--copy);font-size:1.1rem;line-height:1.6;max-width:40ch;margin:0 0 7px}
+.services-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.service-offer{scroll-margin-top:130px;display:flex;flex-direction:column;min-width:0;min-height:485px;padding:clamp(27px,3vw,43px);border:1px solid var(--border);border-radius:24px;background:var(--surface-soft)}
+.service-offer:nth-child(6n+1){border-top:5px solid #5874ef}.service-offer:nth-child(6n+2){border-top:5px solid #00aa99}.service-offer:nth-child(6n+3){border-top:5px solid #efbe38}.service-offer:nth-child(6n+4){border-top:5px solid #ed7193}.service-offer:nth-child(6n+5){border-top:5px solid #8774d4}.service-offer:nth-child(6n+6){border-top:5px solid #54afd4}
+.service-offer-top{display:flex;justify-content:space-between;color:var(--subtle);font-size:.72rem;font-weight:800;letter-spacing:.13em}
+.service-offer-top span:last-child{font-size:1.4rem;line-height:.7;color:var(--foreground);letter-spacing:0}
+.service-offer h3{font-size:clamp(1.8rem,2.7vw,2.7rem);letter-spacing:-.055em;line-height:1.1;max-width:17ch;margin:36px 0 17px}
+.service-offer p{color:var(--copy);line-height:1.65;font-size:1.05rem;max-width:52ch;margin:0 0 28px}
+.service-offer h4{font-size:.75rem;letter-spacing:.13em;text-transform:uppercase;margin:0 0 8px}
+.service-offer ul{list-style:none;padding:0;margin:0 0 35px;color:var(--copy)}
+.service-offer li{position:relative;padding:7px 0 7px 20px;line-height:1.4}
+.service-offer li:before{content:'';position:absolute;left:0;top:16px;width:6px;height:6px;border-radius:50%;background:var(--primary)}
+.service-offer-foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:20px;margin-top:auto;font-size:.83rem}
+.service-offer-foot span{color:var(--subtle)}
+.service-offer-foot a{color:var(--foreground);font-weight:800}
+.services-scope{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr);gap:clamp(24px,6vw,100px);padding:clamp(60px,9vw,120px) 0;border-bottom:1px solid var(--border)}
+.services-scope h2{font-size:clamp(2.2rem,4.4vw,4.6rem);line-height:1.04;letter-spacing:-.055em;margin:18px 0}
+.services-scope p{color:var(--copy);font-size:1.06rem;line-height:1.75;margin:0 0 20px}
+.services-cta{margin-bottom:0}.services-cta small{display:block;color:var(--subtle);margin-top:20px;line-height:1.5}
+@media(max-width:760px){.services-overview{grid-template-columns:1fr;gap:0}.services-overview span,.services-overview span+span{border-left:0;padding:14px 0}.services-overview span+span{border-top:1px solid var(--border)}.services-section-heading,.services-grid,.services-scope{grid-template-columns:1fr}.services-section-heading p{margin-top:20px}.service-offer{min-height:0}.services-scope{gap:6px}}
+.business-services-link{display:flex;justify-content:space-between;align-items:end;gap:30px;padding:clamp(45px,6vw,90px) var(--page-gutter);border-block:1px solid var(--border);background:var(--surface-soft)}
+.business-services-link h2{font-size:clamp(2.2rem,4vw,4.7rem);letter-spacing:-.06em;line-height:1.04;max-width:17ch;margin:16px 0}
+.business-services-link p{color:var(--copy);max-width:65ch;line-height:1.65;margin:0}
+.business-services-link .buy-button{flex:none;white-space:nowrap}
+@media(max-width:760px){.business-services-link{display:block}.business-services-link .buy-button{display:inline-flex;margin-top:26px;white-space:normal}}
+@media(max-width:600px){.product-topbar .product-navigation{grid-template-columns:repeat(4,minmax(0,1fr))}.product-topbar .product-navigation a{font-size:10px;padding:9px 2px}}

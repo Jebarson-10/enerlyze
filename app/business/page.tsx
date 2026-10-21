@@ -42,12 +42,13 @@ export default async function BusinessPage() {const {content}=await getPublished
         <div className="section-heading"><span className="pathway-label">A CLEARER PATH</span><h2>{c('business.process.title')}</h2></div>
         <div className="business-process-grid">{services.map(number => <article key={number}><span>{number}</span><h3>{c(`business.service.${number}.title`)}</h3><p>{c(`business.service.${number}.body`)}</p></article>)}</div>
       </section>
+      <section className="business-services-link" aria-labelledby="business-services-title"><div><span className="pathway-label">OUR SERVICES</span><h2 id="business-services-title">A defined service for the question in front of you.</h2><p>Explore carbon footprint assessment, equipment energy analysis, ESG data preparation, Scope 3 readiness, renewable feasibility and ongoing tracking.</p></div><a className="buy-button" href="/services">Explore business services ↗</a></section>
       <section className="answer-section business-answers" aria-labelledby="business-answers-title">
         <div className="answer-heading"><span className="pathway-label">QUESTIONS WE HEAR</span><h2 id="business-answers-title">Clear scope. Useful evidence.</h2><p>Energy and emissions work is most valuable when the boundary, source data and assumptions are explicit.</p></div>
         <div className="answer-grid">{answers.map(index => <article key={index}><h3>{c(`business.faq.${index}.question`)}</h3><p>{c(`business.faq.${index}.answer`)}</p></article>)}</div>
       </section>
       <section className="business-cta"><h2>{c('business.cta.title')}</h2><p>{c('business.cta.body')}</p><a href={`mailto:${c('home.contact.email')}?subject=Business%20energy%20analysis%20enquiry`}>Contact Enerlyze ↗</a></section>
     </main>
-    <footer className="tool-footer"><a href="/">Enerlyze</a><a href="/guides/energy-audit-vs-energy-monitoring">Audit vs monitoring</a><a href="/guides/scope-1-scope-2-scope-3-emissions">Emissions scopes</a><a href="/methodology">Methodology</a><a href="/calculator">Explore Enerlyzer →</a></footer>
+    <footer className="tool-footer"><a href="/">Enerlyze</a><a href="/services">Business services</a><a href="/guides/energy-audit-vs-energy-monitoring">Audit vs monitoring</a><a href="/guides/scope-1-scope-2-scope-3-emissions">Emissions scopes</a><a href="/methodology">Methodology</a><a href="/calculator">Explore Enerlyzer →</a></footer>
   </div>;
 }

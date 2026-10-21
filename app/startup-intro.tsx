@@ -2,12 +2,12 @@
 import {useEffect,useRef,useState} from 'react';
 import {introSound,playCue} from '@/lib/sound';
 
-const DURATION=4.6;
-const labels=['ENERGY ESCAPES','SEE WHAT MATTERS','LESS WASTE. LESS CARBON.','enerlyze'];
-const descriptions=['At home and at work, hidden losses add up.','Enerlyze reveals where energy and carbon go.','Smarter choices make every unit count.','Your personal partner for a greener lifestyle.'];
+const DURATION=6.8;
+const labels=['WASTED ENERGY ADDS UP','FIND THE HIDDEN LOSSES','SAVE ENERGY. CUT CARBON.','enerlyze'];
+const descriptions=['At home and at work, every lost unit has a cost.','A clearer view reveals where the energy goes.','Better choices shrink the carbon cloud.','Your personal partner for a greener lifestyle.'];
 const colors=['#365cff','#00aa99','#ec4e78','#f4bc25','#9968e6'];
 const smooth=(v:number)=>{const x=Math.max(0,Math.min(1,v));return x*x*(3-2*x)};
-const phase=(t:number)=>t<1.2?0:t<2.45?1:t<3.55?2:3;
+const phase=(t:number)=>t<1.5?0:t<3.15?1:t<5.25?2:3;
 
 function PixelScene({onPhase,onFinish}:{onPhase:(n:number)=>void;onFinish:()=>void}){
  const canvasRef=useRef<HTMLCanvasElement>(null);
@@ -27,9 +27,9 @@ function PixelScene({onPhase,onFinish}:{onPhase:(n:number)=>void;onFinish:()=>vo
    ctx.setTransform(dpr*scale,0,0,dpr*scale,dpr*(width-W*scale)/2,dpr*(height-H*scale)/2);ctx.imageSmoothingEnabled=false;
    const dark=document.documentElement.dataset.theme==='dark',ink=dark?'#e7e9f2':'#242931',soft=dark?'#5d6473':'#bdc4d0';
    const homeX=narrow?112:265,factoryX=narrow?326:560,center=W/2;
-   const sceneA=1-smooth((t-3.12)/.46),buildA=smooth(t/.32)*sceneA;
-   const scanA=smooth((t-1.13)/.16)*(1-smooth((t-2.48)/.19))*sceneA;
-   const solution=smooth((t-2.38)/.42),logoA=smooth((t-3.08)/.5);
+   const sceneA=1-smooth((t-5.08)/.78),buildA=smooth(t/.38)*sceneA;
+   const scanA=smooth((t-1.42)/.2)*(1-smooth((t-3.12)/.28))*sceneA;
+   const solution=smooth((t-3.05)/.8),logoA=smooth((t-5.12)/.82);
    for(let x=24;x<W;x+=28)for(let y=24;y<H;y+=28)dot(x,y,2,soft,dark?.12:.17);
    if(buildA>0){
     // One artboard holds both audiences: household energy and industrial energy.
@@ -45,6 +45,7 @@ function PixelScene({onPhase,onFinish}:{onPhase:(n:number)=>void;onFinish:()=>vo
     rect(fx+48,base-173,20,54,soft,buildA);rect(fx+44,base-177,28,7,ink,buildA);
     for(let i=0;i<3;i++)rect(fx-65+i*52,base-70,28,34,colors[3],buildA*.8);
     rect(20,base+12,W-40,4,soft,buildA*.65);
+    ctx.globalAlpha=buildA*.8;ctx.fillStyle=soft;ctx.font='700 12px Space Grotesk, Arial, sans-serif';ctx.textAlign='center';ctx.fillText('HOME',hx,base+40);ctx.fillText('WORK',fx,base+40);ctx.globalAlpha=1;
     const wasteA=(1-solution)*buildA;
     for(let i=0;i<36;i++){
      const sourceX=i%2?hx:fx,originY=i%2?base-124:base-155;
@@ -54,9 +55,9 @@ function PixelScene({onPhase,onFinish}:{onPhase:(n:number)=>void;onFinish:()=>vo
     // The carbon cloud is a visible consequence, then contracts as the scene improves.
     const cloudA=buildA*(1-solution*.86),cloudX=center,cloudY=96,cloudR=1-solution*.38;
     for(let i=0;i<85;i++){const a=i*2.399,r=Math.sqrt(i/85)*63*cloudR;dot(cloudX+Math.cos(a)*r,cloudY+Math.sin(a)*r*.62,5+i%3,i%4?colors[2]:colors[3],cloudA*(.28+i%4*.13))}
-    ctx.globalAlpha=cloudA;ctx.fillStyle=dark?'#fff5f7':'#442c34';ctx.font='700 22px Space Grotesk, Arial, sans-serif';ctx.textAlign='center';ctx.fillText('CO₂',cloudX,cloudY+8);ctx.globalAlpha=1;
+    ctx.globalAlpha=buildA;ctx.fillStyle=solution>.5?colors[1]:(dark?'#fff5f7':'#442c34');ctx.font='700 22px Space Grotesk, Arial, sans-serif';ctx.textAlign='center';ctx.fillText(solution>.5?'CO₂ ↓':'CO₂',cloudX,cloudY+8);ctx.globalAlpha=1;
     // Enerlyze identifies the losses with a crisp moving pixel scan.
-    if(scanA>0){const progress=smooth((t-1.18)/1.22),sx=32+progress*(W-64);
+    if(scanA>0){const progress=smooth((t-1.5)/1.55),sx=32+progress*(W-64);
      rect(sx-2,139,4,200,colors[0],scanA*.7);
      for(let y=139;y<339;y+=17){dot(sx-12,y,5,colors[1],scanA);dot(sx+8,y,5,colors[1],scanA)}
      for(const target of [hx,fx]){const close=1-Math.min(1,Math.abs(sx-target)/80);if(close>0){rect(target-25,base+14,50,5,colors[1],scanA*close);dot(target-2,base+8,7,colors[0],scanA*close)}}
@@ -72,7 +73,7 @@ function PixelScene({onPhase,onFinish}:{onPhase:(n:number)=>void;onFinish:()=>vo
    const turn=t*.4;
    for(let i=0;i<420;i++){
     const y=1-(i+.5)/420*2,r=Math.sqrt(1-y*y),a=i*Math.PI*(3-Math.sqrt(5))+turn,z=Math.sin(a)*r;
-    const destX=center+Math.cos(a)*r*(narrow?91:104),destY=205+y*(narrow?91:104),gather=smooth((t-3.08)/.5);
+    const destX=center+Math.cos(a)*r*(narrow?91:104),destY=205+y*(narrow?91:104),gather=smooth((t-5.1)/.86);
     const originX=i%2?homeX:factoryX,originY=140+(i*37%180);
     dot(originX+(destX-originX)*gather,originY+(destY-originY)*gather,z>0?4:3,colors[(i*7+Math.floor(i/31))%5],logoA*(.45+(z+1)*.22));
    }
@@ -99,7 +100,7 @@ export default function StartupIntro(){
   if(!visible)return;
   const overflow=document.body.style.overflow,prior=document.activeElement as HTMLElement|null,content=document.getElementById('site-content');
   document.body.style.overflow='hidden';document.body.classList.add('intro-active');if(content)content.inert=true;skip.current?.focus();
-  const fallback=window.setTimeout(complete,4800);
+  const fallback=window.setTimeout(complete,7200);
   return()=>{window.clearTimeout(fallback);document.body.style.overflow=overflow;document.body.classList.remove('intro-active');introSound(-1);if(content)content.inert=false;prior?.focus()};
  },[visible,run]);
  if(!visible)return null;

@@ -30,10 +30,10 @@ export function introSound(t:number){
  if(!intro){['water','fire','steam','electric'].forEach(name=>gain(name,0));assemblySound(assemblyMode,assemblyExpansion,assemblyVisible);return;}
  gain('water',0);
  gain('fire',0);
- gain('steam',.075*smooth(t,1.1,1.3)*(1-smooth(t,2.35,2.65)));
- gain('motor',.038*smooth(t,.15,.45)*(1-smooth(t,3.15,3.55)));
- gain('motor-high',.035*smooth(t,2.36,2.65)*(1-smooth(t,3.15,3.55)));
- gain('electric',.045*smooth(t,2.3,2.65)*(1-smooth(t,4,4.4)));
+ gain('steam',.075*smooth(t,1.42,1.7)*(1-smooth(t,3.1,3.4)));
+ gain('motor',.038*smooth(t,.2,.55)*(1-smooth(t,5.05,5.5)));
+ gain('motor-high',.035*smooth(t,3.1,3.45)*(1-smooth(t,5.05,5.5)));
+ gain('electric',.045*smooth(t,3.1,3.5)*(1-smooth(t,6.2,6.65)));
 }
 export function assemblySound(mode:string,expansion:number,visible:boolean){
  assemblyMode=mode;assemblyExpansion=expansion;assemblyVisible=visible;

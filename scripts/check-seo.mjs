@@ -3,7 +3,7 @@ import {guides} from '../lib/guides.ts';
 
 const base=(process.argv[2]||'http://127.0.0.1:8787').replace(/\/$/,'');
 const canonical='https://www.enerlyze.in';
-const routes=['/','/calculator','/business','/shop','/about','/enerlyzer','/methodology','/guides',...guides.map(guide=>`/guides/${guide.slug}`)];
+const routes=['/','/calculator','/business','/services','/shop','/about','/enerlyzer','/methodology','/guides',...guides.map(guide=>`/guides/${guide.slug}`)];
 const text=(html,pattern)=>html.match(pattern)?.[1]||'';
 const attr=(tag,name)=>tag.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1]||'';
 const tagBy=(html,pattern)=>html.match(pattern)?.[0]||'';
