@@ -78,10 +78,6 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
    }
    const sphere=pointSphere(850,1.45,0xffffff,.075);
    sphere.material.toneMapped=false;
-   const updateLogoColor=()=>sphere.material.color.set(document.documentElement.dataset.theme==='dark'?0xffffff:0x173b70);
-   updateLogoColor();
-   const themeObserver=new MutationObserver(updateLogoColor);
-   themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
    const base=(sphere.geometry.attributes.position.array as Float32Array).slice();
    const word:number[][]=[];
    'ENERLYZE'.split('').forEach((char,ci)=>letters[char].forEach((row,yi)=>row.split('').forEach((on,xi)=>{
@@ -226,7 +222,7 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
    }
    draw();
    cleanup=()=>{
-    cancelAnimationFrame(frame);observer.disconnect();themeObserver.disconnect();
+    cancelAnimationFrame(frame);observer.disconnect();
     el.removeEventListener('pointermove',onPointer);el.removeEventListener('pointerleave',reset);
     const geometries=new Set<Three.BufferGeometry>(),materials=new Set<Three.Material>();
     scene.traverse(object=>{const mesh=object as Three.Mesh;if(mesh.geometry)geometries.add(mesh.geometry);const m=mesh.material;if(m)(Array.isArray(m)?m:[m]).forEach(mat=>materials.add(mat))});

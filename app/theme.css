@@ -87,7 +87,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* Navigation and the always-accessible theme choice. */
 .topbar { background: var(--header); border-bottom: 1px solid var(--border); }
 .wordmark { color: var(--foreground); }
-.point-logo-wrap { position: relative; display: inline-grid; flex: none; place-items: center; width: 38px; height: 38px; isolation: isolate; }
+.point-logo-wrap { position: relative; display: inline-grid; flex: none; place-items: center; width: 38px; height: 38px; isolation: isolate; background: radial-gradient(circle, #090c14 0 48%, #090c14d9 59%, transparent 78%); }
 .point-logo { position: relative; z-index: 2; display: block; width: 100%; height: 100%; }
 .point-logo-wrap::before,
 .point-logo-wrap::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; pointer-events: none; }
@@ -105,12 +105,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .talk, .buy-button:not(:disabled) { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
 .talk:hover, .buy-button:not(:disabled):hover { background: var(--foreground); color: var(--background); }
 
-/* Hero stays bright or black; color lives in the object and its perimeter. */
+/* The identity keeps the same dark surface in either page theme. */
 .intro h1 { color: var(--foreground); }
 .intro h1 span { background: linear-gradient(100deg,#3155e7 5%,#0b9e8b 43%,#ca3d68 74%,#a66a00 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 html[data-theme='dark'] .intro h1 span { background-image: linear-gradient(100deg,#a7b7ff 5%,#65dfc8 43%,#ff9db4 74%,#f5d55f 100%); }
-.brand-panel { position: relative; isolation: isolate; background: var(--background); border: 1px solid var(--border); box-shadow: 0 24px 65px var(--shadow); }
-.hero-glow-stage { position: relative; isolation: isolate; overflow: hidden; }
+.brand-panel { position: relative; isolation: isolate; overflow: hidden; border: 1px solid #30394b; border-radius: 24px; background: #090c14; box-shadow: 0 24px 65px #0b132627; }
+.hero-glow-stage { position: relative; isolation: isolate; overflow: hidden; background: radial-gradient(circle at 50% 50%, #15253d 0%, #0d1422 48%, #090c14 100%); }
 .hero-glow-stage::after { content: ''; position: absolute; z-index: 0; left: 50%; top: 50%; width: min(82%, 365px); aspect-ratio: 1; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); background: conic-gradient(#3c65ff,#03b8a3,#f2b81f,#ef557a,#3c65ff); opacity: .12; filter: blur(45px); animation: electric-breathe 4s ease-in-out infinite alternate; }
 .hero-glow-stage .immersive-canvas { position: relative; z-index: 2; }
 .hero-electric-sparks { position: absolute; z-index: 3; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -201,7 +201,6 @@ html[data-theme='dark'] .intro h1 span { background-image: linear-gradient(100de
 .glow-cursor__hotspot { background: #234fd3; box-shadow: 0 0 8px 1px #3e5dca; }
 
 /* Dark mode uses a genuinely black canvas and luminous, controlled color. */
-html[data-theme='dark'] .brand-panel { background: #09090b; }
 html[data-theme='dark'] .portal>span:last-child { color: #d8dbe5; }
 html[data-theme='dark'] .business-hero::after { opacity: .48; }
 html[data-theme='dark'] .site-cursor { mix-blend-mode: screen; opacity: .82; }
