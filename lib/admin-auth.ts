@@ -17,9 +17,13 @@ export function passwordPolicy(value:string){return typeof value==='string'&&val
 export function validUsername(value:string){return typeof value==='string'&&/^[a-z][a-z0-9.@_-]{3,31}$/.test(value)}
 export async function derivePassword(password:string,salt?:string){
  const saltBytes=salt?Uint8Array.from(salt.match(/.{2}/g)!.map(part=>parseInt(part,16))):crypto.getRandomValues(new Uint8Array(24));
- const material=await crypto.subtle.importKey('raw',encoder.encode(password),'PBKDF2',false,['deriveBits']);
- const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:saltBytes,iterations:310000,hash:'SHA-256'},material,256);
- return {salt:hex(saltBytes),hash:hex(new Uint8Array(bits))};
+ let input=new Uint8Array(encoder.encode(password));
+ for(let round=0;round<4;round++){
+  const roundSalt=new Uint8Array(saltBytes.length+1);roundSalt.set(saltBytes);roundSalt[saltBytes.length]=round;
+  const material=await crypto.subtle.importKey('raw',input,'PBKDF2',false,['deriveBits']);
+  input=new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt:roundSalt,iterations:100000,hash:'SHA-256'},material,256));
+ }
+ return {salt:hex(saltBytes),hash:hex(input)};
 }
 export async function verifyPassword(password:string,salt:string,expected:string){
  const {hash}=await derivePassword(password,salt);let diff=hash.length^expected.length;

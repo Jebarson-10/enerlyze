@@ -1,10 +1,6 @@
 import {createSession,db,derivePassword,fail,jsonBody,ownerMayBootstrap,passwordPolicy,sameOrigin,validUsername} from '@/lib/admin-auth';
 export const dynamic='force-dynamic';
-export async function GET(request:Request){
- if(new URL(request.url).searchParams.has('probe')&&await ownerMayBootstrap()){
-  try{await derivePassword('TemporaryProbe2026!');return Response.json({passwordHashing:'ok'},{headers:{'Cache-Control':'no-store'}})}
-  catch(error){return Response.json({passwordHashing:'failed',reason:error instanceof Error?error.message:String(error)},{headers:{'Cache-Control':'no-store'}})}
- }
+export async function GET(){
  try{const row=await db().prepare('SELECT COUNT(*) AS count FROM admin_users').first<{count:number}>();return Response.json({setupRequired:!row?.count,ownerVerified:await ownerMayBootstrap()},{headers:{'Cache-Control':'no-store'}})}
  catch{return fail('Admin storage is not ready',503)}
 }
