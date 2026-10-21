@@ -111,10 +111,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 html[data-theme='dark'] .intro h1 span { background-image: linear-gradient(100deg,#a7b7ff 5%,#65dfc8 43%,#ff9db4 74%,#f5d55f 100%); }
 .brand-panel { position: relative; isolation: isolate; background: var(--background); border: 1px solid var(--border); box-shadow: 0 24px 65px var(--shadow); }
 .hero-glow-stage { position: relative; isolation: isolate; overflow: hidden; }
-.hero-glow-stage::before, .hero-glow-stage::after { content: ''; position: absolute; left: 50%; top: 50%; width: min(72%, 315px); aspect-ratio: 1; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); }
-.hero-glow-stage::before { z-index: 1; background: conic-gradient(from 10deg, transparent 0 13%, #3c65ff 15%, transparent 19% 35%, #04b6a6 38%, transparent 42% 57%, #f2b81f 60%, transparent 64% 80%, #ef557a 83%, transparent 87%); -webkit-mask: radial-gradient(transparent 65%,#000 68% 70%,transparent 74%); mask: radial-gradient(transparent 65%,#000 68% 70%,transparent 74%); animation: electric-orbit 10s linear infinite; filter: drop-shadow(0 0 5px #3566ff); }
-.hero-glow-stage::after { z-index: 0; width: min(82%, 365px); background: conic-gradient(#3c65ff,#03b8a3,#f2b81f,#ef557a,#3c65ff); opacity: .12; filter: blur(45px); animation: electric-orbit 16s linear infinite reverse; }
+.hero-glow-stage::after { content: ''; position: absolute; z-index: 0; left: 50%; top: 50%; width: min(82%, 365px); aspect-ratio: 1; border-radius: 50%; pointer-events: none; transform: translate(-50%, -50%); background: conic-gradient(#3c65ff,#03b8a3,#f2b81f,#ef557a,#3c65ff); opacity: .12; filter: blur(45px); animation: electric-breathe 4s ease-in-out infinite alternate; }
 .hero-glow-stage .immersive-canvas { position: relative; z-index: 2; }
+.hero-electric-sparks { position: absolute; z-index: 3; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .portal, .portal:last-child { color: var(--foreground); box-shadow: 0 12px 35px var(--shadow); }
 .portal:first-child { background: var(--home-card); border-color: transparent; }
 .portal:last-child { background: var(--business-card); border-color: transparent; }
@@ -203,7 +202,6 @@ html[data-theme='dark'] .intro h1 span { background-image: linear-gradient(100de
 
 /* Dark mode uses a genuinely black canvas and luminous, controlled color. */
 html[data-theme='dark'] .brand-panel { background: #09090b; }
-html[data-theme='dark'] .point-logo { filter: brightness(1.35) saturate(1.2); }
 html[data-theme='dark'] .portal>span:last-child { color: #d8dbe5; }
 html[data-theme='dark'] .business-hero::after { opacity: .48; }
 html[data-theme='dark'] .site-cursor { mix-blend-mode: screen; opacity: .82; }
@@ -230,10 +228,10 @@ html[data-theme='dark'] .glow-cursor__hotspot { background: #e6f9ff; box-shadow:
   .theme-toggle { min-width: 34px; width: 34px; padding: 7px; }
   .theme-toggle span { display: none; }
   .product-topbar>.theme-toggle { margin-left: auto; }
-  .hero-glow-stage::before { width: min(75%, 250px); }
   .hero-glow-stage::after { width: min(85%, 280px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .point-logo-wrap::before, .point-logo-wrap::after,
-  .hero-glow-stage::before, .hero-glow-stage::after { animation: none; }
+  .hero-glow-stage::after { animation: none; }
+  .hero-electric-sparks { display: none; }
 }

@@ -46,7 +46,6 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
    const cellMaterial=new T.MeshStandardMaterial({color:0x153146,metalness:.62,roughness:.17});
    const green=new T.MeshStandardMaterial({color:0x9cff3b,metalness:.15,roughness:.36});
    const leafMaterial=new T.MeshStandardMaterial({color:0x61ba36,metalness:.08,roughness:.4,side:T.DoubleSide});
-   const glow=new T.MeshBasicMaterial({color:0xa5ff38});
    const textures:Three.Texture[]=[];
    const root=new T.Group();scene.add(root);
    const disc=document.createElement('canvas');disc.width=64;disc.height=64;
@@ -78,14 +77,11 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
     const m=new T.Mesh(new T.TubeGeometry(curve,28,radius,6,false),material);parent.add(m);return m;
    }
    const sphere=pointSphere(850,1.45,0xffffff,.075);
-   const sphereColors=new Float32Array(850*3);
-   const electricPalette=[0x385cff,0x0cb3a7,0xeb5277,0xf0bb23,0x9566ed];
-   for(let i=0;i<850;i++){
-    const color=new T.Color(electricPalette[(Math.floor(i/53)+Math.floor(i*1.618))%electricPalette.length]);
-    sphereColors[i*3]=color.r;sphereColors[i*3+1]=color.g;sphereColors[i*3+2]=color.b;
-   }
-   sphere.geometry.setAttribute('color',new T.BufferAttribute(sphereColors,3));
-   sphere.material.vertexColors=true;
+   sphere.material.toneMapped=false;
+   const updateLogoColor=()=>sphere.material.color.set(document.documentElement.dataset.theme==='dark'?0xffffff:0x173b70);
+   updateLogoColor();
+   const themeObserver=new MutationObserver(updateLogoColor);
+   themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
    const base=(sphere.geometry.attributes.position.array as Float32Array).slice();
    const word:number[][]=[];
    'ENERLYZE'.split('').forEach((char,ci)=>letters[char].forEach((row,yi)=>row.split('').forEach((on,xi)=>{
@@ -206,7 +202,6 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
      }
      sphere.geometry.attributes.position.needsUpdate=true;
      sphere.rotation.set(py*.12*(1-reveal),px*.16*(1-reveal),0);
-     sphere.material.color.set(0xffffff);
      sphere.material.size=.13+reveal*.13;
     } else {
      root.rotation.y=Math.sin(elapsed*.12)*.07+px*.12+p*.24;
@@ -231,7 +226,7 @@ export default function EnergyScene({mode,progress,motion,burst=false}:{mode:Mod
    }
    draw();
    cleanup=()=>{
-    cancelAnimationFrame(frame);observer.disconnect();
+    cancelAnimationFrame(frame);observer.disconnect();themeObserver.disconnect();
     el.removeEventListener('pointermove',onPointer);el.removeEventListener('pointerleave',reset);
     const geometries=new Set<Three.BufferGeometry>(),materials=new Set<Three.Material>();
     scene.traverse(object=>{const mesh=object as Three.Mesh;if(mesh.geometry)geometries.add(mesh.geometry);const m=mesh.material;if(m)(Array.isArray(m)?m:[m]).forEach(mat=>materials.add(mat))});
