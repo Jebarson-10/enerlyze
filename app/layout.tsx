@@ -15,6 +15,7 @@ import {contentValue} from '@/lib/content-fields';
 import {jsonLd} from '@/lib/seo';
 import './info.css';
 import './services.css';
+import './home-nav.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.enerlyze.in'),

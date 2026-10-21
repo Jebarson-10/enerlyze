@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {introSound,playCue} from '@/lib/sound';
 
-const DURATION=6.8;
+const DURATION=7.45;
 const labels=['WASTED ENERGY ADDS UP','FIND THE HIDDEN LOSSES','SAVE ENERGY. CUT CARBON.','enerlyze'];
 const descriptions=['At home and at work, every lost unit has a cost.','A clearer view reveals where the energy goes.','Better choices shrink the carbon cloud.','Your personal partner for a greener lifestyle.'];
 const colors=['#365cff','#00aa99','#ec4e78','#f4bc25','#9968e6'];
@@ -22,9 +22,11 @@ function PixelScene({onPhase,onFinish}:{onPhase:(n:number)=>void;onFinish:()=>vo
   const rect=(x:number,y:number,w:number,h:number,color:string,alpha=1)=>{ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));ctx.globalAlpha=1};
   const dot=(x:number,y:number,size:number,color:string,alpha=1)=>rect(x,y,size,size,color,alpha);
   const draw=(t:number)=>{
-   const narrow=width<620,W=narrow?440:800,H=460,scale=Math.min(width/W,height/H);
+   const narrow=width<620,W=narrow?440:800,H=460;
+   const artWidth=width*(narrow?.96:.93),artHeight=height*(narrow?.61:.63);
+   const scale=Math.min(artWidth/W,artHeight/H),artLeft=(width-W*scale)/2,artTop=height*(narrow?.14:.12)+(artHeight-H*scale)/2;
    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
-   ctx.setTransform(dpr*scale,0,0,dpr*scale,dpr*(width-W*scale)/2,dpr*(height-H*scale)/2);ctx.imageSmoothingEnabled=false;
+   ctx.setTransform(dpr*scale,0,0,dpr*scale,dpr*artLeft,dpr*artTop);ctx.imageSmoothingEnabled=false;
    const dark=document.documentElement.dataset.theme==='dark',ink=dark?'#e7e9f2':'#242931',soft=dark?'#5d6473':'#bdc4d0';
    const homeX=narrow?112:265,factoryX=narrow?326:560,center=W/2;
    const sceneA=1-smooth((t-5.08)/.78),buildA=smooth(t/.38)*sceneA;
@@ -70,14 +72,36 @@ function PixelScene({onPhase,onFinish}:{onPhase:(n:number)=>void;onFinish:()=>vo
      for(let i=0;i<24;i++){const x=(i%2?hx:fx)+Math.sin(i*2.3)*45,y=135+(i*37%83);dot(x,y,4+i%2,colors[i%2?1:0],solution*buildA*.65)}
     }
    }
-   const turn=t*.4;
+   const turn=t*.4,transfer=smooth((t-6.12)/1.15),introSphereA=1-smooth((t-6.12)/.12);
    for(let i=0;i<420;i++){
     const y=1-(i+.5)/420*2,r=Math.sqrt(1-y*y),a=i*Math.PI*(3-Math.sqrt(5))+turn,z=Math.sin(a)*r;
     const destX=center+Math.cos(a)*r*(narrow?91:104),destY=205+y*(narrow?91:104),gather=smooth((t-5.1)/.86);
     const originX=i%2?homeX:factoryX,originY=140+(i*37%180);
-    dot(originX+(destX-originX)*gather,originY+(destY-originY)*gather,z>0?4:3,colors[(i*7+Math.floor(i/31))%5],logoA*(.45+(z+1)*.22));
+    dot(originX+(destX-originX)*gather,originY+(destY-originY)*gather,z>0?4:3,colors[(i*7+Math.floor(i/31))%5],logoA*introSphereA*(.45+(z+1)*.22));
    }
-   if(logoA>0)for(let i=0;i<4;i++){const a=t*.8+i*Math.PI/2,r=narrow?105:119;dot(center+Math.cos(a)*r,205+Math.sin(a)*r,7,colors[i],logoA*.75)}
+   if(logoA>0)for(let i=0;i<4;i++){const a=t*.8+i*Math.PI/2,r=narrow?105:119;dot(center+Math.cos(a)*r,205+Math.sin(a)*r,7,colors[i],logoA*introSphereA*.75)}
+   if(t>=6.12){
+    // Carry the last sphere into the already-rendered homepage, then let its dots resolve into the real UI.
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const stage=document.querySelector('.hero-glow-stage')?.getBoundingClientRect();
+    const headline=document.querySelector('.entrance .intro h1')?.getBoundingClientRect();
+    const header=document.querySelector('.topbar')?.getBoundingClientRect();
+    const sphereX=stage?stage.left+stage.width/2:width*.7;
+    const sphereY=stage?stage.top+stage.height/2:height*.55;
+    const sphereRadius=stage?Math.min(stage.width,stage.height)*.29:Math.min(width,height)*.19;
+    const fade=1-smooth((t-6.72)/.67),spread=Math.sin(transfer*Math.PI)*Math.min(width,height)*.07;
+    for(let i=0;i<420;i+=2){
+     const y=1-(i+.5)/420*2,r=Math.sqrt(1-y*y),a=i*Math.PI*(3-Math.sqrt(5))+turn,z=Math.sin(a)*r;
+     const fromX=artLeft+scale*(center+Math.cos(a)*r*(narrow?91:104));
+     const fromY=artTop+scale*(205+y*(narrow?91:104));
+     let toX=sphereX+Math.cos(a)*r*sphereRadius,toY=sphereY+y*sphereRadius;
+     if(i%9===3&&headline){toX=headline.left+headline.width*((i*37%101)/101);toY=headline.top+headline.height*((i*53%97)/97)}
+     if(i%9===5&&header){toX=header.left+header.width*((i*31%103)/103);toY=header.top+header.height*((i*41%89)/89)}
+     const x=fromX+(toX-fromX)*transfer+Math.cos(i*2.399)*spread;
+     const py=fromY+(toY-fromY)*transfer+Math.sin(i*2.399)*spread;
+     dot(x,py,z>0?3:2,colors[(i*7+Math.floor(i/31))%5],fade*(.32+(z+1)*.16));
+    }
+   }
   };
   const animate=()=>{
    const t=Math.min(DURATION,(performance.now()-started)/1000);
@@ -99,9 +123,10 @@ export default function StartupIntro(){
  useEffect(()=>{
   if(!visible)return;
   const overflow=document.body.style.overflow,prior=document.activeElement as HTMLElement|null,content=document.getElementById('site-content');
+  window.scrollTo({top:0,behavior:'instant'});
   document.body.style.overflow='hidden';document.body.classList.add('intro-active');if(content)content.inert=true;skip.current?.focus();
-  const fallback=window.setTimeout(complete,7200);
-  return()=>{window.clearTimeout(fallback);document.body.style.overflow=overflow;document.body.classList.remove('intro-active');introSound(-1);if(content)content.inert=false;prior?.focus()};
+  const fallback=window.setTimeout(complete,7900);
+  return()=>{window.clearTimeout(fallback);document.body.style.overflow=overflow;document.body.classList.remove('intro-active');introSound(-1);if(content)content.inert=false;prior?.focus({preventScroll:true})};
  },[visible,run]);
  if(!visible)return null;
  return <div key={run} className="startup-intro pixel-intro" data-phase={currentPhase} role="dialog" aria-modal="true" aria-label="Enerlyze introduction" onKeyDown={e=>{if(e.key==='Escape')complete()}}>
